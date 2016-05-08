@@ -6,6 +6,7 @@ import javax.sql.DataSource;
 
 import org.apache.camel.CamelContext;
 import org.apache.camel.component.spring.ws.bean.CamelEndpointMapping;
+import org.apache.camel.impl.InterceptSendToMockEndpointStrategy;
 import org.apache.camel.spring.boot.CamelSpringBootApplicationController;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
@@ -94,10 +95,12 @@ public class App extends RepositoryRestMvcConfiguration {
 		// clean previous states
 		FileSystemUtils.deleteRecursively(new File("activemq-data"));
 
-		ConfigurableApplicationContext app = SpringApplication.run(App.class);
-		assert app != null;
-		CamelSpringBootApplicationController applicationController = app
+		SpringApplication app = new SpringApplication(App.class);
+		app.setAdditionalProfiles("dev");
+		ConfigurableApplicationContext ctx = app.run();
+		assert ctx != null;
+		CamelSpringBootApplicationController applicationController = ctx
 				.getBean(CamelSpringBootApplicationController.class);
-		// applicationController.blockMainThread();
+		 applicationController.blockMainThread();
 	}
 }
