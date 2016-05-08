@@ -97,7 +97,7 @@ dependencies {
     compile('org.apache.camel:camel-stream:2.16.2')
     compile('org.apache.activemq:activemq-broker')
     compile('org.springframework:spring-jms')
-
+	compile('com.icegreen:greenmail:1.5.0')
     testCompile("org.springframework.boot:spring-boot-starter-test")
     testCompile('org.apache.camel:camel-test-spring:2.16.2')
     

@@ -1,13 +1,17 @@
 package at.ac.tuwien.wmpm;
 
+import static org.junit.Assert.*;
+
 import java.util.Date;
+
+import javax.mail.MessagingException;
+import javax.mail.internet.MimeMessage;
 
 import org.apache.camel.EndpointInject;
 import org.apache.camel.Produce;
 import org.apache.camel.ProducerTemplate;
 import org.apache.camel.component.mock.MockEndpoint;
-import org.apache.camel.test.spring.CamelSpringDelegatingTestContextLoader;
-import org.apache.camel.test.spring.MockEndpoints;
+import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
@@ -16,8 +20,12 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ActiveProfiles;
-import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
+
+import com.icegreen.greenmail.junit.GreenMailRule;
+import com.icegreen.greenmail.util.GreenMailUtil;
+import com.icegreen.greenmail.util.ServerSetup;
+import com.icegreen.greenmail.util.ServerSetupTest;
 
 //TODO needs cleanup
 //@RunWith(CamelSpringJUnit4ClassRunner.class)
@@ -78,5 +86,27 @@ public class CamelConfigTest /* extends AbstractJUnit4SpringContextTests */ {
 		publishCurrentProjectionRoute.sendBody(now);
 		
 		publishToSlackMock.assertIsSatisfied();
+	}
+	
+	@Rule
+	public GreenMailRule greenMail = new GreenMailRule(ServerSetupTest.ALL);
+	
+	@Test
+	public void testFromMailWithCSV_toEndResultTables() throws MessagingException {
+		/*
+		 * TODO Task 3. 
+		 * 		define a table in /wmpm/src/main/resources/sql/create-tables.sql
+		 * 		(we can think about how to interface that with task 2 another time
+		 * 		or 2 people work together on this)
+		 * 		get CSV from mail-server
+		 * 		write it into the database
+		 */
+		GreenMailUtil.sendTextEmailTest("to@localhost.com", "from@localhost.com", "subject", "body");
+		MimeMessage[] emails = greenMail.getReceivedMessages();
+		assertEquals(1, emails.length);
+		assertEquals("subject", emails[0].getSubject());
+		assertEquals("body", GreenMailUtil.getBody(emails[0]));
+		
+		fail("not yet implemented");
 	}
 }
