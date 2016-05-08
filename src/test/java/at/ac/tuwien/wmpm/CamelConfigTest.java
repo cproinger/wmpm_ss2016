@@ -15,7 +15,7 @@ public class CamelConfigTest {
 	private ProducerTemplate removePersonalInformationRoute;
 	
 	@Test
-	public void test() {
+	public void testStripPersonalInformationAndSave() {
 		
 		/* TODO Task 1. 
 		 * 		define any class that has a vote-field
