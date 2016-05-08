@@ -11,6 +11,8 @@ import org.springframework.context.annotation.Bean;
 public class CamelConfig extends FatJarRouter {
 	
 
+	public static final String DIRECT_REMOVE_PERSONAL_INFORMATION = "direct:remove_personal_information";
+
 	@Override
 	public void configure() throws Exception {
 //		Predicate isQuit = body().isEqualTo("quit");
@@ -46,6 +48,15 @@ public class CamelConfig extends FatJarRouter {
 		from("direct:log")
 			.convertBodyTo(String.class)
 			.to("log:getCountryRequest?level=INFO");
+
+		
+		//this takes an Object
+		from(DIRECT_REMOVE_PERSONAL_INFORMATION)
+			//TODO tranform to JSON
+			//TODO use JOLT to strip peronal information
+			.to("direct:replace_this_with_mongodb_store")
+//			.to("direct:log")
+			;
 	}
 	
 	
