@@ -89,7 +89,7 @@ public class CamelConfigTest /* extends AbstractJUnit4SpringContextTests */ {
 	}
 	
 	@Rule
-	public GreenMailRule greenMail = new GreenMailRule(ServerSetupTest.ALL);
+	public GreenMailRule greenMail = new GreenMailRule(ServerSetupTest.SMTP_POP3_IMAP);
 	
 	@Test
 	public void testFromMailWithCSV_toEndResultTables() throws MessagingException {
