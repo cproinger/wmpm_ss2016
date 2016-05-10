@@ -79,7 +79,7 @@ public class CamelConfig extends SingleRouteCamelConfiguration {
 				.wireTap("direct:log").end()
 				.unmarshal(jaxb)
 				.transform().simple("body.name")
-				.bean(SampleCountryRepository.class, "findCountry")
+				//.bean(SampleCountryRepository.class, "findCountry")
 				.transform().spel("#{@responseFactory.createCountryResponse(body)}")
 				.marshal(jaxb)
 				.wireTap("direct:log").end()
