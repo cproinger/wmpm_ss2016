@@ -1,12 +1,8 @@
 package at.ac.tuwien.wmpm;
 
-import static org.junit.Assert.*;
-
-import java.util.Date;
-
-import javax.mail.MessagingException;
-import javax.mail.internet.MimeMessage;
-
+import com.icegreen.greenmail.junit.GreenMailRule;
+import com.icegreen.greenmail.util.GreenMailUtil;
+import com.icegreen.greenmail.util.ServerSetupTest;
 import org.apache.camel.EndpointInject;
 import org.apache.camel.Produce;
 import org.apache.camel.ProducerTemplate;
@@ -22,16 +18,18 @@ import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ActiveProfiles;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import com.icegreen.greenmail.junit.GreenMailRule;
-import com.icegreen.greenmail.util.GreenMailUtil;
-import com.icegreen.greenmail.util.ServerSetup;
-import com.icegreen.greenmail.util.ServerSetupTest;
+import javax.mail.MessagingException;
+import javax.mail.internet.MimeMessage;
+import java.util.Date;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
 
 //TODO needs cleanup
 //@RunWith(CamelSpringJUnit4ClassRunner.class)
 @RunWith(SpringJUnit4ClassRunner.class)
 @SpringApplicationConfiguration(classes = CamelConfigTest.class
-		)
+)
 //@ContextConfiguration(
 //		classes = CamelConfig.class,
 //		loader = CamelSpringDelegatingTestContextLoader.class
@@ -45,13 +43,13 @@ import com.icegreen.greenmail.util.ServerSetupTest;
 @ComponentScan
 @ActiveProfiles("test")
 public class CamelConfigTest /* extends AbstractJUnit4SpringContextTests */ {
-	
-	@Produce(uri = CamelConfig.REMOVE_PERSONAL_INFORMATION_ENDPOINT)
-	private ProducerTemplate removePersonalInformationRoute;
-	
-	@Test
-	public void testStripPersonalInformationAndSave() {
-		
+
+    @Produce(uri = CamelConfig.REMOVE_PERSONAL_INFORMATION_ENDPOINT)
+    private ProducerTemplate removePersonalInformationRoute;
+
+    @Test
+    public void testStripPersonalInformationAndSave() {
+
 		/* TODO Task 1. 
 		 * 		define any class that has a vote-field
 		 * 		and other fields. 
@@ -60,17 +58,17 @@ public class CamelConfigTest /* extends AbstractJUnit4SpringContextTests */ {
 		 * 		when sent to this route
 		 * 		then only the content of the vote field is stored in mongodb
 		 */
-		removePersonalInformationRoute.sendBody("This is an ex-parrot!");
-	}
-	
-	@Produce(uri = CamelConfig.PUBLISH_CURRENT_PROJECTION_ENDPOINT)
-	private ProducerTemplate publishCurrentProjectionRoute;
-	
-	@EndpointInject(uri = CamelConfig.SLACK_ENDPOINT)
+        removePersonalInformationRoute.sendBody("This is an ex-parrot!");
+    }
+
+    @Produce(uri = CamelConfig.PUBLISH_CURRENT_PROJECTION_ENDPOINT)
+    private ProducerTemplate publishCurrentProjectionRoute;
+
+    @EndpointInject(uri = CamelConfig.SLACK_ENDPOINT)
     protected MockEndpoint publishToSlackMock;
-	
-	@Test
-	public void testEndResultDataToPublishableString() throws InterruptedException {
+
+    @Test
+    public void testEndResultDataToPublishableString() throws InterruptedException {
 		
 		/*
 		 * TODO Task 2. 
@@ -78,21 +76,21 @@ public class CamelConfigTest /* extends AbstractJUnit4SpringContextTests */ {
 		 * 		use a jdbc-template for example to change the Data accordingly
 		 * 		add transformations
 		 */
-		Date now = new Date();
+        Date now = new Date();
 //		MockEndpoint publishToSlackMock = getMockEndpoint("mock:direct:push_to_slack__mockable");
 //		
-		publishToSlackMock.expectedBodiesReceived(now.toString() + " someData");
+        publishToSlackMock.expectedBodiesReceived(now.toString() + " someData");
 
-		publishCurrentProjectionRoute.sendBody(now);
-		
-		publishToSlackMock.assertIsSatisfied();
-	}
-	
-	@Rule
-	public GreenMailRule greenMail = new GreenMailRule(ServerSetupTest.SMTP_POP3_IMAP);
-	
-	@Test
-	public void testFromMailWithCSV_toEndResultTables() throws MessagingException {
+        publishCurrentProjectionRoute.sendBody(now);
+
+        publishToSlackMock.assertIsSatisfied();
+    }
+
+    @Rule
+    public GreenMailRule greenMail = new GreenMailRule(ServerSetupTest.SMTP_POP3_IMAP);
+
+    @Test
+    public void testFromMailWithCSV_toEndResultTables() throws MessagingException {
 		/*
 		 * TODO Task 3. 
 		 * 		define a table in /wmpm/src/main/resources/sql/create-tables.sql
@@ -101,12 +99,15 @@ public class CamelConfigTest /* extends AbstractJUnit4SpringContextTests */ {
 		 * 		get CSV from mail-server
 		 * 		write it into the database
 		 */
-		GreenMailUtil.sendTextEmailTest("to@localhost.com", "from@localhost.com", "subject", "body");
-		MimeMessage[] emails = greenMail.getReceivedMessages();
-		assertEquals(1, emails.length);
-		assertEquals("subject", emails[0].getSubject());
-		assertEquals("body", GreenMailUtil.getBody(emails[0]));
-		
-		fail("not yet implemented");
-	}
+        GreenMailUtil.sendTextEmailTest("to@localhost.com", "from@localhost.com", "subject", "body");
+
+
+        MimeMessage[] emails = greenMail.getReceivedMessages();
+        assertEquals(1, emails.length);
+        assertEquals("subject", emails[0].getSubject());
+        assertEquals("body", GreenMailUtil.getBody(emails[0]));
+
+
+        fail("not yet implemented");
+    }
 }

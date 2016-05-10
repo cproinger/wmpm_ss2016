@@ -96,6 +96,7 @@ dependencies {
     compile('org.apache.camel:camel-jaxb:2.16.2')
     compile('org.apache.camel:camel-stream:2.16.2')
     compile('org.apache.camel:camel-mail:2.16.2')
+    compile('javax.mail:javax.mail-api:1.5.5')
     compile('org.apache.activemq:activemq-broker')
     compile('org.springframework:spring-jms')
 	compile('com.icegreen:greenmail:1.5.0')

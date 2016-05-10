@@ -1,6 +1,8 @@
 package at.ac.tuwien.wmpm;
 
+import org.apache.camel.Exchange;
 import org.apache.camel.LoggingLevel;
+import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.model.dataformat.JaxbDataFormat;
 import org.apache.camel.spring.javaconfig.SingleRouteCamelConfiguration;
@@ -24,7 +26,7 @@ public class CamelConfig extends SingleRouteCamelConfiguration {
 
     public static final String REMOVE_PERSONAL_INFORMATION_ENDPOINT = "direct:remove_personal_information";
 
-    public static final String POP3_URI = "pop3://{{mail.user}}@{{mail.host}}:{{mail.port}}?consumer.delay={{mail.poll-interval}}";
+    public static final String POP3_URI = "pop3://{{mail.host}}:{{mail.port}}?consumer.delay={{mail.poll-interval}}&username={{mail.user}}&password={{mail.password}}";
 
 
     @Override
@@ -60,7 +62,14 @@ public class CamelConfig extends SingleRouteCamelConfiguration {
             // mail csv to database
             from(POP3_URI)
                     .log(LoggingLevel.ERROR, "received email: ${body}")
-                    .to("direct:email");
+                    .process(new Processor() {
+                        @Override
+                        public void process(Exchange exchange) throws Exception {
+                            exchange.getContext();
+                        }
+                    })
+                    .setBody(simple("insert into **todo** values (:par1)"))
+                    .to("jdbc:myDataSource?useHeadersAsParameters=true");
         }
 
 
