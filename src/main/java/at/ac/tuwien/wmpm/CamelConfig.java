@@ -61,15 +61,20 @@ public class CamelConfig extends SingleRouteCamelConfiguration {
 
             // mail csv to database
             from(POP3_URI)
-                    .log(LoggingLevel.ERROR, "received email: ${body}")
+                    .unmarshal().csv()
+                    .split(body())
+
+                    .setHeader("candidate", simple("${body.get(0)}"))
+                    .setHeader("vote_count", simple("${body.get(1)}"))
+                    .setBody(simple("insert into polls(candidate, vote_count) values (:candidate, :vote_count)"))
                     .process(new Processor() {
                         @Override
                         public void process(Exchange exchange) throws Exception {
                             exchange.getContext();
                         }
                     })
-                    .setBody(simple("insert into **todo** values (:par1)"))
-                    .to("jdbc:myDataSource?useHeadersAsParameters=true");
+                    .to("direct:log");
+                    //.to("jdbc:dataSource?useHeadersAsParameters=true");
         }
 
 
