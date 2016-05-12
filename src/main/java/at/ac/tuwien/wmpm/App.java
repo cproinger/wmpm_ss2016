@@ -31,14 +31,17 @@ import org.springframework.ws.wsdl.wsdl11.DefaultWsdl11Definition;
 import org.springframework.xml.xsd.SimpleXsdSchema;
 import org.springframework.xml.xsd.XsdSchema;
 
+import com.icegreen.greenmail.util.GreenMail;
+import com.icegreen.greenmail.util.ServerSetup;
+
 @SpringBootApplication
 @EnableJms
 @EnableWs
 @PropertySource(value = { "classpath:/config/db.properties" })
 public class App extends RepositoryRestMvcConfiguration {
 
-	@Autowired
-	private CamelContext camelContext;
+//	@Autowired
+//	private CamelContext camelContext;
 
 	// @Bean(initMethod = "start")
 	// public BrokerService broker() throws Exception {
@@ -87,8 +90,11 @@ public class App extends RepositoryRestMvcConfiguration {
 	@Bean
 	@ConditionalOnClass(value = DataSource.class)
 	public DataSource dataSource() {
-		return new EmbeddedDatabaseBuilder().setType(EmbeddedDatabaseType.H2)
-				.addScript("classpath:sql/create-tables.sql").addScript("classpath:sql/insert-data.sql").build();
+		return new EmbeddedDatabaseBuilder()
+				.setType(EmbeddedDatabaseType.H2)
+				.addScript("classpath:sql/create-tables.sql")
+				.addScript("classpath:sql/insert-data.sql")
+				.build();
 	}
 
 	public static void main(String[] args) {

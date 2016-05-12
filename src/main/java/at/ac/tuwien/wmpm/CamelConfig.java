@@ -25,6 +25,8 @@ public class CamelConfig extends SingleRouteCamelConfiguration {
     public static final String PUBLISH_CURRENT_PROJECTION_ENDPOINT = "direct:publish_current_projection";
 
     public static final String REMOVE_PERSONAL_INFORMATION_ENDPOINT = "direct:remove_personal_information";
+    
+    public static final String ROUTES_AFTER_CANDIDATE_INSERT_ENDPOINT = "{{routes.after_candidate_insert}}";
 
     public static final String POP3_URI = "pop3://{{mail.host}}:{{mail.port}}?consumer.delay={{mail.poll-interval}}&username={{mail.user}}&password={{mail.password}}";
 
@@ -35,7 +37,9 @@ public class CamelConfig extends SingleRouteCamelConfiguration {
     }
 
     private class MyRouterBuilder extends RouteBuilder {
-        @Override
+
+
+		@Override
         public void configure() throws Exception {
 //			samples();
 
@@ -66,15 +70,17 @@ public class CamelConfig extends SingleRouteCamelConfiguration {
 
                     .setHeader("candidate", simple("${body.get(0)}"))
                     .setHeader("vote_count", simple("${body.get(1)}"))
-                    .setBody(simple("insert into polls(candidate, vote_count) values (:candidate, :vote_count)"))
+                    .setBody(simple("insert into polls(candidate, vote_count) values (:?candidate, :?vote_count);"))
                     .process(new Processor() {
                         @Override
                         public void process(Exchange exchange) throws Exception {
                             exchange.getContext();
                         }
                     })
-                    .to("direct:log");
-                    //.to("jdbc:dataSource?useHeadersAsParameters=true");
+//                    .to("direct:log");
+                    .to("jdbc:dataSource?useHeadersAsParameters=true")
+//                    .to("log:test?level=INFO&showAll=true")
+                    .to(ROUTES_AFTER_CANDIDATE_INSERT_ENDPOINT);
         }
 
 
