@@ -60,21 +60,21 @@ public class App extends RepositoryRestMvcConfiguration {
 	}
 
 	/**
-	 * http://localhost:8080/ws/countries.wsdl
+	 * http://localhost:8080/ws/votes.wsdl
 	 */
-	@Bean(name = "countries")
-	public DefaultWsdl11Definition defaultWsdl11Definition(XsdSchema countriesSchema) {
+	@Bean(name = "votes")
+	public DefaultWsdl11Definition defaultWsdl11Definition(XsdSchema schema) {
 		DefaultWsdl11Definition wsdl11Definition = new DefaultWsdl11Definition();
-		wsdl11Definition.setPortTypeName("CountriesPort");
+		wsdl11Definition.setPortTypeName("VotePort");
 		wsdl11Definition.setLocationUri("/ws");
-		wsdl11Definition.setTargetNamespace("http://spring.io/guides/gs-producing-web-service");
-		wsdl11Definition.setSchema(countriesSchema);
+		wsdl11Definition.setTargetNamespace(schema.getTargetNamespace());
+		wsdl11Definition.setSchema(schema);
 		return wsdl11Definition;
 	}
 
 	@Bean
-	public XsdSchema countriesSchema() {
-		return new SimpleXsdSchema(new ClassPathResource("schema/countries.xsd"));
+	public XsdSchema votesSchema() {
+		return new SimpleXsdSchema(new ClassPathResource("schema/votes.xsd"));
 	}
 
 	@Bean

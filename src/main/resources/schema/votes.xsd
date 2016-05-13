@@ -1,0 +1,48 @@
+<xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
+	xmlns:tns="http://tuwien.ac.at/wmpm/ss2016" targetNamespace="http://tuwien.ac.at/wmpm/ss2016"
+	elementFormDefault="qualified">
+
+	<xs:element name="VoteRequest" type="tns:VoteRequest" />
+
+	<xs:element name="VoteResponse" type="tns:VoteResponse" />
+
+	<xs:complexType name="VoteRequest">
+		<xs:sequence>
+			<xs:element name="personInfo" type="tns:PersonInfo" />
+			<xs:element name="voteInfo" type="tns:VoteInfo" />
+		</xs:sequence>
+	</xs:complexType>
+
+	<xs:complexType name="PersonInfo">
+		<xs:sequence>
+			<!-- TODO -->
+			<xs:element name="votingCard" type="xs:string" />
+			<xs:element name="personalIdentificationDoc" type="xs:string" />
+		</xs:sequence>
+	</xs:complexType>
+
+	<xs:complexType name="VoteInfo">
+		<xs:sequence>
+			<xs:element name="mark">
+				<xs:complexType>
+					<xs:attribute name="candiate" type="xs:string" />
+					<xs:attribute name="mark" type="xs:string" />
+				</xs:complexType>
+			</xs:element>
+		</xs:sequence>
+	</xs:complexType>
+
+	<xs:complexType name="VoteResponse">
+		<xs:sequence>
+			<xs:element name="status" type="tns:ResponseType" />
+		</xs:sequence>
+	</xs:complexType>
+
+	<xs:simpleType name="ResponseType">
+		<xs:restriction base="xs:string">
+			<xs:enumeration value="OK" />
+			<xs:enumeration value="ALREADY_VOTED" />
+			<xs:enumeration value="PERSON_INFO_ERROR" />
+		</xs:restriction>
+	</xs:simpleType>
+</xs:schema>
