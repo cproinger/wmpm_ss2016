@@ -1,5 +1,6 @@
 package at.ac.tuwien.wmpm;
 
+import com.icegreen.greenmail.util.ServerSetupTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
@@ -19,7 +20,7 @@ public class DevConfig {
 	
 	@Bean(initMethod="start", destroyMethod="stop")
 	public GreenMail greenmail() {
-		GreenMail greenMail = new GreenMail(ServerSetup.ALL);
+		GreenMail greenMail = new GreenMail(ServerSetupTest.ALL);
 		greenMail.setUser("to@localhost.com", "to@localhost.com");
 		return greenMail;
 	}
