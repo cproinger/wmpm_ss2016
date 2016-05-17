@@ -4,3 +4,6 @@ jdk:
   - oraclejdk8
 services:
   - mongodb
+
+before_install:
+ - chmod +x gradlew
