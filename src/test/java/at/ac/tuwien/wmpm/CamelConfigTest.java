@@ -1,12 +1,15 @@
 package at.ac.tuwien.wmpm;
 
-import com.icegreen.greenmail.junit.GreenMailRule;
-import com.icegreen.greenmail.util.GreenMailUtil;
-import com.icegreen.greenmail.util.ServerSetupTest;
+import java.util.Date;
+import java.util.concurrent.TimeUnit;
+
+import javax.mail.MessagingException;
+
 import org.apache.camel.EndpointInject;
 import org.apache.camel.Produce;
 import org.apache.camel.ProducerTemplate;
 import org.apache.camel.component.mock.MockEndpoint;
+import org.apache.camel.test.spring.CamelTestContextBootstrapper;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -17,25 +20,28 @@ import org.springframework.context.annotation.ComponentScan;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ActiveProfiles;
+import org.springframework.test.context.BootstrapWith;
 import org.springframework.test.context.junit4.SpringJUnit4ClassRunner;
 
-import javax.mail.MessagingException;
-import javax.mail.internet.MimeMessage;
-import java.util.Date;
-import java.util.concurrent.TimeUnit;
-
-import static org.junit.Assert.assertEquals;
+import com.icegreen.greenmail.junit.GreenMailRule;
+import com.icegreen.greenmail.util.GreenMailUtil;
+import com.icegreen.greenmail.util.ServerSetupTest;
 
 //TODO needs cleanup
 //@RunWith(CamelSpringJUnit4ClassRunner.class)
 @RunWith(SpringJUnit4ClassRunner.class)
-@SpringApplicationConfiguration(classes = CamelConfigTest.class
+@SpringApplicationConfiguration(classes = App.class
 )
 //@ContextConfiguration(
 //		classes = CamelConfig.class,
 //		loader = CamelSpringDelegatingTestContextLoader.class
 //		)
-//@BootstrapWith(CamelTestContextBootstrapper.class)
+
+/* warning!! this starts a separate camel context leading to beans 
+ * being instantiated twice
+ */
+//@BootstrapWith(CamelTestContextBootstrapper.class) 
+
 @DirtiesContext(classMode = ClassMode.AFTER_EACH_TEST_METHOD)
 //@MockEndpoints() //mock endpoints somehow does not work with spring boot
 //@DisableJmx(true)
@@ -114,5 +120,19 @@ public class CamelConfigTest /* extends AbstractJUnit4SpringContextTests */ {
         afterCandidateInsert.expectedMinimumMessageCount(1);
         afterCandidateInsert.await(5, TimeUnit.SECONDS);
         afterCandidateInsert.assertIsSatisfied();
+    }
+    
+    @Produce(uri = CamelConfig.BALLOTS_QUEUE)
+    private ProducerTemplate ballotsQueueProducer;
+    
+    @EndpointInject(uri = "mock:VoteExtracted")
+    protected MockEndpoint voteExtractedMock;
+    
+    @Test
+    public void testBallotVerification() throws InterruptedException {
+    	voteExtractedMock.expectedMinimumMessageCount(1);
+    	ballotsQueueProducer.sendBody("test");
+    	voteExtractedMock.await(5, TimeUnit.SECONDS);
+    	voteExtractedMock.assertIsSatisfied();
     }
 }

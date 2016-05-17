@@ -1,12 +1,11 @@
 package at.ac.tuwien.wmpm;
 
-import com.icegreen.greenmail.util.ServerSetupTest;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.context.annotation.Profile;
 
 import com.icegreen.greenmail.util.GreenMail;
-import com.icegreen.greenmail.util.ServerSetup;
+import com.icegreen.greenmail.util.ServerSetupTest;
 
 /**
  * Developer Resources/Services that should be replaced with

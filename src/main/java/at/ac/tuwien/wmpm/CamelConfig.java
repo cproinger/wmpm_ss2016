@@ -1,15 +1,11 @@
 package at.ac.tuwien.wmpm;
 
 import org.apache.camel.Exchange;
-import org.apache.camel.LoggingLevel;
 import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.model.dataformat.JaxbDataFormat;
 import org.apache.camel.spring.javaconfig.SingleRouteCamelConfiguration;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import java.util.concurrent.Callable;
 
 @Configuration
 public class CamelConfig extends SingleRouteCamelConfiguration {
@@ -29,6 +25,8 @@ public class CamelConfig extends SingleRouteCamelConfiguration {
     public static final String ROUTES_AFTER_CANDIDATE_INSERT_ENDPOINT = "{{routes.after_candidate_insert}}";
 
     public static final String POP3_URI = "pop3://{{mail.host}}:{{mail.port}}?consumer.delay={{mail.poll-interval}}&username={{mail.user}}&password={{mail.password}}";
+
+	public static final String BALLOTS_QUEUE = "jms:queue:ballots";
 
 
     @Override
@@ -81,6 +79,13 @@ public class CamelConfig extends SingleRouteCamelConfiguration {
                     .to("jdbc:dataSource?useHeadersAsParameters=true")
 //                    .to("log:test?level=INFO&showAll=true")
                     .to(ROUTES_AFTER_CANDIDATE_INSERT_ENDPOINT);
+            
+            from(BALLOTS_QUEUE)
+//            	.bean(ExtractCandidateVoteServiceImpl.class, "ping")
+            	.to("bean:extractCandidateVoteService?method=ping")
+//            	.bean(ExtractCandidateVoteService.class, "ping")
+            	.to("mock:VoteExtracted");
+            	
         }
 
 
@@ -121,21 +126,5 @@ public class CamelConfig extends SingleRouteCamelConfiguration {
 
 
         }
-    }
-
-
-    @Bean
-    public String myBean() {
-        return "Hello!";
-    }
-
-    @Bean
-    public Callable<Integer> valueGetter() {
-        return new Callable<Integer>() {
-
-            public Integer call() {
-                return 42;
-            }
-        };
     }
 }

@@ -4,11 +4,8 @@ import java.io.File;
 
 import javax.sql.DataSource;
 
-import org.apache.camel.CamelContext;
 import org.apache.camel.component.spring.ws.bean.CamelEndpointMapping;
-import org.apache.camel.impl.InterceptSendToMockEndpointStrategy;
 import org.apache.camel.spring.boot.CamelSpringBootApplicationController;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -31,25 +28,11 @@ import org.springframework.ws.wsdl.wsdl11.DefaultWsdl11Definition;
 import org.springframework.xml.xsd.SimpleXsdSchema;
 import org.springframework.xml.xsd.XsdSchema;
 
-import com.icegreen.greenmail.util.GreenMail;
-import com.icegreen.greenmail.util.ServerSetup;
-
 @SpringBootApplication
 @EnableJms
 @EnableWs
 @PropertySource(value = { "classpath:/config/db.properties" })
 public class App extends RepositoryRestMvcConfiguration {
-
-//	@Autowired
-//	private CamelContext camelContext;
-
-	// @Bean(initMethod = "start")
-	// public BrokerService broker() throws Exception {
-	// BrokerService broker = new BrokerService();
-	// broker.setPersistent(false);
-	// broker.addConnector("tcp://localhost:9876");
-	// return broker;
-	// }
 
 	@Bean
 	public ServletRegistrationBean messageDispatcherServlet(ApplicationContext applicationContext) {
