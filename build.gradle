@@ -1,4 +1,5 @@
 buildscript {
+
     repositories {
         mavenCentral()
     }
@@ -39,7 +40,7 @@ task genJaxb {
             }
 
             javac(destdir: classesDir, source: 1.6, target: 1.6, debug: true,
-                    debugLevel: "lines,vars,source",
+                    debugLevel: "lines,vars,source", includeAntRuntime : false,
                     classpath: configurations.jaxb.asPath) {
                 src(path: sourcesDir)
                 include(name: "**/*.java")
@@ -144,4 +145,8 @@ task afterEclipseImport {
 	    printer.setPreserveWhitespace(true)
 	    printer.print(classpath)
 	}
+}
+
+bootRun {
+	main = 'at.ac.tuwien.wmpm.App'
 }
