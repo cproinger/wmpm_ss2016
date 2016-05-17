@@ -7,3 +7,7 @@ INSERT INTO Product(name) values('Product 6');
 INSERT INTO Product(name) values('Product 7');
 INSERT INTO Product(name) values('Product 8');
 INSERT INTO Product(name) values('Product 9');
+
+insert into candidate(name) values('Beavis');
+insert into candidate(name) values('ButtHead');
+

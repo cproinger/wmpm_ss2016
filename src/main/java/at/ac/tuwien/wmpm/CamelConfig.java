@@ -82,7 +82,8 @@ public class CamelConfig extends SingleRouteCamelConfiguration {
             
             from(BALLOTS_QUEUE)
 //            	.bean(ExtractCandidateVoteServiceImpl.class, "ping")
-            	.to("bean:extractCandidateVoteService?method=ping")
+            	.to("bean:extractCandidateVoteService?method=extract(${body})")
+            	
 //            	.bean(ExtractCandidateVoteService.class, "ping")
             	.to("mock:VoteExtracted");
             	

@@ -1,6 +1,16 @@
 <xs:schema xmlns:xs="http://www.w3.org/2001/XMLSchema"
 	xmlns:tns="http://tuwien.ac.at/wmpm/ss2016" targetNamespace="http://tuwien.ac.at/wmpm/ss2016"
-	elementFormDefault="qualified">
+	elementFormDefault="qualified" xmlns:jaxb="http://java.sun.com/xml/ns/jaxb"
+	xmlns:xjc="http://java.sun.com/xml/ns/jaxb/xjc"
+	jaxb:extensionBindingPrefixes="xjc" jaxb:version="1.0">
+
+	<xs:annotation>
+		<xs:appinfo>
+			<jaxb:globalBindings>
+				<xjc:serializable uid="1" />
+			</jaxb:globalBindings>
+		</xs:appinfo>
+	</xs:annotation>
 
 	<xs:element name="VoteRequest" type="tns:VoteRequest" />
 
@@ -23,7 +33,7 @@
 
 	<xs:complexType name="VoteInfo">
 		<xs:sequence>
-			<xs:element name="mark">
+			<xs:element name="item" minOccurs="0" maxOccurs="unbounded">
 				<xs:complexType>
 					<xs:attribute name="candiate" type="xs:string" />
 					<xs:attribute name="mark" type="xs:string" />

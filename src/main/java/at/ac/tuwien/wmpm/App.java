@@ -1,11 +1,17 @@
 package at.ac.tuwien.wmpm;
 
 import java.io.File;
+import java.util.Arrays;
+import java.util.List;
+import java.util.stream.Collectors;
 
+import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
 
+import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.camel.component.spring.ws.bean.CamelEndpointMapping;
 import org.apache.camel.spring.boot.CamelSpringBootApplicationController;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.autoconfigure.condition.ConditionalOnClass;
@@ -28,11 +34,30 @@ import org.springframework.ws.wsdl.wsdl11.DefaultWsdl11Definition;
 import org.springframework.xml.xsd.SimpleXsdSchema;
 import org.springframework.xml.xsd.XsdSchema;
 
+import at.ac.tuwien.wmpm.ss2016.VoteRequest;
+
 @SpringBootApplication
 @EnableJms
 @EnableWs
 @PropertySource(value = { "classpath:/config/db.properties" })
 public class App extends RepositoryRestMvcConfiguration {
+	
+	@Autowired
+	private ActiveMQConnectionFactory connectionFactory;
+	
+	@PostConstruct
+	private void setTrustedPackagesForJMS() {
+		// because using object messages needs this for security
+		// purposes
+		Class<?> cs[] = new Class<?>[] {
+			VoteRequest.class, 
+			List.class
+		};
+		List<String> trustedPackages = Arrays.stream(cs)
+				.map(c -> c.getPackage().getName())
+				.collect(Collectors.toList());
+		connectionFactory.setTrustedPackages(trustedPackages);
+	}
 
 	@Bean
 	public ServletRegistrationBean messageDispatcherServlet(ApplicationContext applicationContext) {

@@ -27,6 +27,8 @@ import com.icegreen.greenmail.junit.GreenMailRule;
 import com.icegreen.greenmail.util.GreenMailUtil;
 import com.icegreen.greenmail.util.ServerSetupTest;
 
+import at.ac.tuwien.wmpm.ss2016.VoteInfo;
+
 //TODO needs cleanup
 //@RunWith(CamelSpringJUnit4ClassRunner.class)
 @RunWith(SpringJUnit4ClassRunner.class)
@@ -131,7 +133,12 @@ public class CamelConfigTest /* extends AbstractJUnit4SpringContextTests */ {
     @Test
     public void testBallotVerification() throws InterruptedException {
     	voteExtractedMock.expectedMinimumMessageCount(1);
-    	ballotsQueueProducer.sendBody("test");
+    	VoteInfo info = new VoteInfo();
+    	VoteInfo.Item e = new VoteInfo.Item();
+    	e.setCandiate("Beavis");
+    	e.setMark("x");
+		info.getItem().add(e);
+		ballotsQueueProducer.sendBody(info);
     	voteExtractedMock.await(5, TimeUnit.SECONDS);
     	voteExtractedMock.assertIsSatisfied();
     }
