@@ -131,15 +131,42 @@ public class CamelConfigTest /* extends AbstractJUnit4SpringContextTests */ {
     protected MockEndpoint voteExtractedMock;
     
     @Test
-    public void testBallotVerification() throws InterruptedException {
-    	voteExtractedMock.expectedMinimumMessageCount(1);
+    public void testBallotVerification_onlyOneValid_works() throws InterruptedException {
+    	voteExtractedMock.expectedMessageCount(1);
     	VoteInfo info = new VoteInfo();
-    	VoteInfo.Item e = new VoteInfo.Item();
-    	e.setCandiate("Beavis");
-    	e.setMark("x");
-		info.getItem().add(e);
+    	info.getItem().add(createVoteItem("Beavis", "x"));
+    	info.getItem().add(createVoteItem("Butthead", ""));
 		ballotsQueueProducer.sendBody(info);
     	voteExtractedMock.await(5, TimeUnit.SECONDS);
     	voteExtractedMock.assertIsSatisfied();
     }
+    
+    @Test
+    public void testBallotVerification_twoValid_exception() throws InterruptedException {
+    	voteExtractedMock.expectedMessageCount(0);
+    	VoteInfo info = new VoteInfo();
+    	info.getItem().add(createVoteItem("Beavis", "x"));
+    	info.getItem().add(createVoteItem("Butthead", "x"));
+		ballotsQueueProducer.sendBody(info);
+    	voteExtractedMock.await(5, TimeUnit.SECONDS);
+    	voteExtractedMock.assertIsSatisfied();
+    }
+    
+    @Test
+    public void testBallotVerification_oneValidOneNonExistent_exception() throws InterruptedException {
+    	voteExtractedMock.setExpectedMessageCount(0);
+    	VoteInfo info = new VoteInfo();
+    	info.getItem().add(createVoteItem("Beavis", "x"));
+    	info.getItem().add(createVoteItem("Trump", "x"));
+		ballotsQueueProducer.sendBody(info);
+    	voteExtractedMock.await(5, TimeUnit.SECONDS);
+    	voteExtractedMock.assertIsSatisfied();
+    }
+
+	private VoteInfo.Item createVoteItem(String name, String mark) {
+		VoteInfo.Item e = new VoteInfo.Item();
+    	e.setCandiate(name);
+    	e.setMark(mark);
+		return e;
+	}
 }

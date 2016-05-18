@@ -1,7 +1,7 @@
 package at.ac.tuwien.wmpm.service;
 
-import at.ac.tuwien.wmpm.domain.Candidate;
 import at.ac.tuwien.wmpm.ss2016.VoteInfo;
+import at.ac.tuwien.wmpm.ss2016.VoteInfo.Item;
 
 public interface ExtractCandidateVoteService {
 
@@ -14,5 +14,5 @@ public interface ExtractCandidateVoteService {
 	 * @return
 	 * @throws IllegalVoteException
 	 */
-	Candidate extract(VoteInfo voteInfo) throws IllegalVoteException;
+	Item extract(VoteInfo voteInfo) throws IllegalVoteException;
 }
