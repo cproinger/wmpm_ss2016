@@ -7,6 +7,8 @@ import org.apache.camel.model.dataformat.JaxbDataFormat;
 import org.apache.camel.spring.javaconfig.SingleRouteCamelConfiguration;
 import org.springframework.context.annotation.Configuration;
 
+import at.ac.tuwien.wmpm.service.IllegalVoteInfoException;
+
 @Configuration
 public class CamelConfig extends SingleRouteCamelConfiguration {
 
@@ -27,6 +29,7 @@ public class CamelConfig extends SingleRouteCamelConfiguration {
     public static final String POP3_URI = "pop3://{{mail.host}}:{{mail.port}}?consumer.delay={{mail.poll-interval}}&username={{mail.user}}&password={{mail.password}}";
 
 	public static final String BALLOTS_QUEUE = "jms:queue:ballots";
+	public static final String ILLEGAL_VOTE_INFO_ENDPOINT = "mock:IllegalVoteInfoException";
 
 
     @Override
@@ -35,6 +38,8 @@ public class CamelConfig extends SingleRouteCamelConfiguration {
     }
 
     private class MyRouterBuilder extends RouteBuilder {
+
+
 
 
 		@Override
@@ -81,10 +86,11 @@ public class CamelConfig extends SingleRouteCamelConfiguration {
                     .to(ROUTES_AFTER_CANDIDATE_INSERT_ENDPOINT);
             
             from(BALLOTS_QUEUE)
-//            	.bean(ExtractCandidateVoteServiceImpl.class, "ping")
+            	.onException(IllegalVoteInfoException.class)
+            		.to(ILLEGAL_VOTE_INFO_ENDPOINT)
+            		.end()
             	.to("bean:extractCandidateVoteService?method=extract(${body})")
             	.to("bean:verifyCandidateVoteItemService?method=lookupCandidate(${body})")
-//            	.bean(ExtractCandidateVoteService.class, "ping")
             	.to("mock:VoteExtracted");
             	
         }

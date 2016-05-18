@@ -5,8 +5,6 @@ import at.ac.tuwien.wmpm.ss2016.VoteInfo.Item;
 
 public interface ExtractCandidateVoteService {
 
-	String ping();
-
 	/**
 	 * 
 	 * @param voteInfo

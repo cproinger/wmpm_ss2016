@@ -25,9 +25,4 @@ public class ExtractCandidateVoteServiceImpl implements ExtractCandidateVoteServ
 		
 		return validItems.get(0);
 	}
-	
-	@Override
-	public String ping() {
-		return "pong";
-	}
 }

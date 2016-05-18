@@ -8,8 +8,12 @@ import javax.mail.MessagingException;
 import org.apache.camel.EndpointInject;
 import org.apache.camel.Produce;
 import org.apache.camel.ProducerTemplate;
+import org.apache.camel.builder.PredicateBuilder;
+import org.apache.camel.component.mock.AssertionClause.PredicateValueBuilder;
 import org.apache.camel.component.mock.MockEndpoint;
 import org.apache.camel.test.spring.CamelTestContextBootstrapper;
+import org.hibernate.service.spi.InjectService;
+import org.junit.ClassRule;
 import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
@@ -53,7 +57,9 @@ import at.ac.tuwien.wmpm.ss2016.VoteInfo;
 @ActiveProfiles("test")
 public class CamelConfigTest /* extends AbstractJUnit4SpringContextTests */ {
 
-    @Produce(uri = CamelConfig.REMOVE_PERSONAL_INFORMATION_ENDPOINT)
+    private static final int AWAIT_TIME = 5;
+
+	@Produce(uri = CamelConfig.REMOVE_PERSONAL_INFORMATION_ENDPOINT)
     private ProducerTemplate removePersonalInformationRoute;
 
     @Test
@@ -97,8 +103,9 @@ public class CamelConfigTest /* extends AbstractJUnit4SpringContextTests */ {
         publishToSlackMock.assertIsSatisfied();
     }
 
-    @Rule
-    public GreenMailRule greenMail = new GreenMailRule(ServerSetupTest.SMTP_POP3_IMAP);
+//    @Rule
+    @ClassRule
+    public static GreenMailRule greenMail = new GreenMailRule(ServerSetupTest.SMTP_POP3_IMAP);
     
     @EndpointInject(uri = CamelConfig.ROUTES_AFTER_CANDIDATE_INSERT_ENDPOINT)
     protected MockEndpoint afterCandidateInsert;
@@ -137,30 +144,41 @@ public class CamelConfigTest /* extends AbstractJUnit4SpringContextTests */ {
     	info.getItem().add(createVoteItem("Beavis", "x"));
     	info.getItem().add(createVoteItem("Butthead", ""));
 		ballotsQueueProducer.sendBody(info);
-    	voteExtractedMock.await(5, TimeUnit.SECONDS);
+    	voteExtractedMock.await(AWAIT_TIME, TimeUnit.SECONDS);
     	voteExtractedMock.assertIsSatisfied();
     }
     
+    @EndpointInject(uri = CamelConfig.ILLEGAL_VOTE_INFO_ENDPOINT)
+    private MockEndpoint illegalVoteInfoException;
+    
     @Test
     public void testBallotVerification_twoValid_exception() throws InterruptedException {
-    	voteExtractedMock.expectedMessageCount(0);
+    	voteExtractedMock.expectedMinimumMessageCount(1);
+    	illegalVoteInfoException.expectedMessageCount(1);
+    	
     	VoteInfo info = new VoteInfo();
     	info.getItem().add(createVoteItem("Beavis", "x"));
     	info.getItem().add(createVoteItem("Butthead", "x"));
 		ballotsQueueProducer.sendBody(info);
-    	voteExtractedMock.await(5, TimeUnit.SECONDS);
-    	voteExtractedMock.assertIsSatisfied();
+		
+    	voteExtractedMock.await(AWAIT_TIME, TimeUnit.SECONDS);
+    	voteExtractedMock.assertIsNotSatisfied();
+    	illegalVoteInfoException.assertIsSatisfied();
     }
     
     @Test
     public void testBallotVerification_oneValidOneNonExistent_exception() throws InterruptedException {
-    	voteExtractedMock.setExpectedMessageCount(0);
+    	voteExtractedMock.expectedMinimumMessageCount(1);
+    	illegalVoteInfoException.expectedMessageCount(1);
+
     	VoteInfo info = new VoteInfo();
     	info.getItem().add(createVoteItem("Beavis", "x"));
     	info.getItem().add(createVoteItem("Trump", "x"));
 		ballotsQueueProducer.sendBody(info);
-    	voteExtractedMock.await(5, TimeUnit.SECONDS);
-    	voteExtractedMock.assertIsSatisfied();
+		
+    	voteExtractedMock.await(AWAIT_TIME, TimeUnit.SECONDS);
+    	voteExtractedMock.assertIsNotSatisfied();
+    	illegalVoteInfoException.assertIsSatisfied();
     }
 
 	private VoteInfo.Item createVoteItem(String name, String mark) {
