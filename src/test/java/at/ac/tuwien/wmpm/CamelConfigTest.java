@@ -57,14 +57,14 @@ import at.ac.tuwien.wmpm.ss2016.VoteInfo;
 @ActiveProfiles("test")
 public class CamelConfigTest /* extends AbstractJUnit4SpringContextTests */ {
 
-    private static final int AWAIT_TIME = 5;
+  private static final int AWAIT_TIME = 5;
 
-	@Produce(uri = CamelConfig.REMOVE_PERSONAL_INFORMATION_ENDPOINT)
-    private ProducerTemplate removePersonalInformationRoute;
+  @Produce(uri = CamelConfig.REMOVE_PERSONAL_INFORMATION_ENDPOINT)
+  private ProducerTemplate removePersonalInformationRoute;
 
-    @Test
-    @Ignore("fails for now")
-    public void testStripPersonalInformationAndSave() {
+  @Test
+  @Ignore("fails for now")
+  public void testStripPersonalInformationAndSave() {
 
 		/* TODO Task 1. 
          * 		define any class that has a vote-field
@@ -74,44 +74,44 @@ public class CamelConfigTest /* extends AbstractJUnit4SpringContextTests */ {
 		 * 		when sent to this route
 		 * 		then only the content of the vote field is stored in mongodb
 		 */
-        removePersonalInformationRoute.sendBody("This is an ex-parrot!");
-    }
+    removePersonalInformationRoute.sendBody("This is an ex-parrot!");
+  }
 
-    @Produce(uri = CamelConfig.PUBLISH_CURRENT_PROJECTION_ENDPOINT)
-    private ProducerTemplate publishCurrentProjectionRoute;
+  @Produce(uri = CamelConfig.PUBLISH_CURRENT_PROJECTION_ENDPOINT)
+  private ProducerTemplate publishCurrentProjectionRoute;
 
-    @EndpointInject(uri = CamelConfig.SLACK_ENDPOINT)
-    protected MockEndpoint publishToSlackMock;
+  @EndpointInject(uri = CamelConfig.SLACK_ENDPOINT)
+  protected MockEndpoint publishToSlackMock;
 
-    @Test
-    @Ignore("fails for now")
-    public void testEndResultDataToPublishableString() throws InterruptedException {
+  @Test
+  @Ignore("fails for now")
+  public void testEndResultDataToPublishableString() throws InterruptedException {
 
 		/*
-		 * TODO Task 2. 
+     * TODO Task 2.
 		 * 		define a table in /wmpm/src/main/resources/sql/create-tables.sql
 		 * 		use a jdbc-template for example to change the Data accordingly
 		 * 		add transformations
 		 */
-        Date now = new Date();
+    Date now = new Date();
 //		MockEndpoint publishToSlackMock = getMockEndpoint("mock:direct:push_to_slack__mockable");
 //		
-        publishToSlackMock.expectedBodiesReceived(now.toString() + " someData");
+    publishToSlackMock.expectedBodiesReceived(now.toString() + " someData");
 
-        publishCurrentProjectionRoute.sendBody(now);
+    publishCurrentProjectionRoute.sendBody(now);
 
-        publishToSlackMock.assertIsSatisfied();
-    }
+    publishToSlackMock.assertIsSatisfied();
+  }
 
-//    @Rule
-    @ClassRule
-    public static GreenMailRule greenMail = new GreenMailRule(ServerSetupTest.SMTP_POP3_IMAP);
-    
-    @EndpointInject(uri = CamelConfig.ROUTES_AFTER_CANDIDATE_INSERT_ENDPOINT)
-    protected MockEndpoint afterCandidateInsert;
-    
-    @Test
-    public void testFromMailWithCSV_toEndResultTables() throws MessagingException, InterruptedException {
+  //    @Rule
+  @ClassRule
+  public static GreenMailRule greenMail = new GreenMailRule(ServerSetupTest.SMTP_POP3_IMAP);
+
+  @EndpointInject(uri = CamelConfig.ROUTES_AFTER_CANDIDATE_INSERT_ENDPOINT)
+  protected MockEndpoint afterCandidateInsert;
+
+  @Test
+  public void testFromMailWithCSV_toEndResultTables() throws MessagingException, InterruptedException {
 		/*
 		 * TODO Task 3. 
 		 * 		define a table in /wmpm/src/main/resources/sql/create-tables.sql
@@ -120,71 +120,71 @@ public class CamelConfigTest /* extends AbstractJUnit4SpringContextTests */ {
 		 * 		get CSV from mail-server
 		 * 		write it into the database
 		 */
-        GreenMailUtil.sendTextEmailTest("to@localhost.com", "from@localhost.com", "subject",
-                "Trump,10\nLugner,13"
-        );
+    GreenMailUtil.sendTextEmailTest("to@localhost.com", "from@localhost.com", "subject",
+            "Trump,10\nLugner,13"
+    );
 
-        //TODO test if inserts where successful
+    //TODO test if inserts where successful
 //        afterCandidateInsert.expectedHeaderReceived("test", "test");
-        afterCandidateInsert.expectedMinimumMessageCount(1);
-        afterCandidateInsert.await(5, TimeUnit.SECONDS);
-        afterCandidateInsert.assertIsSatisfied();
-    }
-    
-    @Produce(uri = CamelConfig.BALLOTS_QUEUE)
-    private ProducerTemplate ballotsQueueProducer;
-    
-    @EndpointInject(uri = "mock:VoteExtracted")
-    protected MockEndpoint voteExtractedMock;
-    
-    @Test
-    public void testBallotVerification_onlyOneValid_works() throws InterruptedException {
-    	voteExtractedMock.expectedMessageCount(1);
-    	VoteInfo info = new VoteInfo();
-    	info.getItem().add(createVoteItem("Beavis", "x"));
-    	info.getItem().add(createVoteItem("Butthead", ""));
-		ballotsQueueProducer.sendBody(info);
-    	voteExtractedMock.await(AWAIT_TIME, TimeUnit.SECONDS);
-    	voteExtractedMock.assertIsSatisfied();
-    }
-    
-    @EndpointInject(uri = CamelConfig.ILLEGAL_VOTE_INFO_ENDPOINT)
-    private MockEndpoint illegalVoteInfoException;
-    
-    @Test
-    public void testBallotVerification_twoValid_exception() throws InterruptedException {
-    	voteExtractedMock.expectedMinimumMessageCount(1);
-    	illegalVoteInfoException.expectedMessageCount(1);
-    	
-    	VoteInfo info = new VoteInfo();
-    	info.getItem().add(createVoteItem("Beavis", "x"));
-    	info.getItem().add(createVoteItem("Butthead", "x"));
-		ballotsQueueProducer.sendBody(info);
-		
-    	voteExtractedMock.await(AWAIT_TIME, TimeUnit.SECONDS);
-    	voteExtractedMock.assertIsNotSatisfied();
-    	illegalVoteInfoException.assertIsSatisfied();
-    }
-    
-    @Test
-    public void testBallotVerification_oneValidOneNonExistent_exception() throws InterruptedException {
-    	voteExtractedMock.expectedMinimumMessageCount(1);
-    	illegalVoteInfoException.expectedMessageCount(1);
+    afterCandidateInsert.expectedMinimumMessageCount(1);
+    afterCandidateInsert.await(5, TimeUnit.SECONDS);
+    afterCandidateInsert.assertIsSatisfied();
+  }
 
-    	VoteInfo info = new VoteInfo();
-    	info.getItem().add(createVoteItem("Beavis", "x"));
-    	info.getItem().add(createVoteItem("Trump", "x"));
-		ballotsQueueProducer.sendBody(info);
-		
-    	voteExtractedMock.await(AWAIT_TIME, TimeUnit.SECONDS);
-    	voteExtractedMock.assertIsNotSatisfied();
-    	illegalVoteInfoException.assertIsSatisfied();
-    }
+  @Produce(uri = CamelConfig.BALLOTS_QUEUE)
+  private ProducerTemplate ballotsQueueProducer;
 
-	private VoteInfo.Item createVoteItem(String name, String mark) {
-		VoteInfo.Item e = new VoteInfo.Item();
-    	e.setCandiate(name);
-    	e.setMark(mark);
-		return e;
-	}
+  @EndpointInject(uri = "mock:VoteExtracted")
+  protected MockEndpoint voteExtractedMock;
+
+  @Test
+  public void testBallotVerification_onlyOneValid_works() throws InterruptedException {
+    voteExtractedMock.expectedMessageCount(1);
+    VoteInfo info = new VoteInfo();
+    info.getItem().add(createVoteItem("Beavis", "x"));
+    info.getItem().add(createVoteItem("Butthead", ""));
+    ballotsQueueProducer.sendBody(info);
+    voteExtractedMock.await(AWAIT_TIME, TimeUnit.SECONDS);
+    voteExtractedMock.assertIsSatisfied();
+  }
+
+  @EndpointInject(uri = CamelConfig.ILLEGAL_VOTE_INFO_ENDPOINT)
+  private MockEndpoint illegalVoteInfoException;
+
+  @Test
+  public void testBallotVerification_twoValid_exception() throws InterruptedException {
+    voteExtractedMock.expectedMinimumMessageCount(1);
+    illegalVoteInfoException.expectedMessageCount(1);
+
+    VoteInfo info = new VoteInfo();
+    info.getItem().add(createVoteItem("Beavis", "x"));
+    info.getItem().add(createVoteItem("Butthead", "x"));
+    ballotsQueueProducer.sendBody(info);
+
+    voteExtractedMock.await(AWAIT_TIME, TimeUnit.SECONDS);
+    voteExtractedMock.assertIsNotSatisfied();
+    illegalVoteInfoException.assertIsSatisfied();
+  }
+
+  @Test
+  public void testBallotVerification_oneValidOneNonExistent_exception() throws InterruptedException {
+    voteExtractedMock.expectedMinimumMessageCount(1);
+    illegalVoteInfoException.expectedMessageCount(1);
+
+    VoteInfo info = new VoteInfo();
+    info.getItem().add(createVoteItem("Beavis", "x"));
+    info.getItem().add(createVoteItem("Trump", "x"));
+    ballotsQueueProducer.sendBody(info);
+
+    voteExtractedMock.await(AWAIT_TIME, TimeUnit.SECONDS);
+    voteExtractedMock.assertIsNotSatisfied();
+    illegalVoteInfoException.assertIsSatisfied();
+  }
+
+  private VoteInfo.Item createVoteItem(String name, String mark) {
+    VoteInfo.Item e = new VoteInfo.Item();
+    e.setCandiate(name);
+    e.setMark(mark);
+    return e;
+  }
 }

@@ -39,82 +39,82 @@ import at.ac.tuwien.wmpm.ss2016.VoteRequest;
 @SpringBootApplication
 @EnableJms
 @EnableWs
-@PropertySource(value = { "classpath:/config/db.properties" })
+@PropertySource(value = {"classpath:/config/db.properties"})
 public class App extends RepositoryRestMvcConfiguration {
-	
-	@Autowired
-	private ActiveMQConnectionFactory connectionFactory;
-	
-	@PostConstruct
-	private void setTrustedPackagesForJMS() {
-		// because using object messages needs this for security
-		// purposes
-		Class<?> cs[] = new Class<?>[] {
-			VoteRequest.class, 
-			List.class
-		};
-		List<String> trustedPackages = Arrays.stream(cs)
-				.map(c -> c.getPackage().getName())
-				.collect(Collectors.toList());
-		connectionFactory.setTrustedPackages(trustedPackages);
-	}
 
-	@Bean
-	public ServletRegistrationBean messageDispatcherServlet(ApplicationContext applicationContext) {
-		MessageDispatcherServlet servlet = new MessageDispatcherServlet();
-		servlet.setApplicationContext(applicationContext);
-		servlet.setTransformWsdlLocations(true);
-		return new ServletRegistrationBean(servlet, "/ws/*");
-	}
+  @Autowired
+  private ActiveMQConnectionFactory connectionFactory;
 
-	/**
-	 * http://localhost:8080/ws/votes.wsdl
-	 */
-	@Bean(name = "votes")
-	public DefaultWsdl11Definition defaultWsdl11Definition(XsdSchema schema) {
-		DefaultWsdl11Definition wsdl11Definition = new DefaultWsdl11Definition();
-		wsdl11Definition.setPortTypeName("VotePort");
-		wsdl11Definition.setLocationUri("/ws");
-		wsdl11Definition.setTargetNamespace(schema.getTargetNamespace());
-		wsdl11Definition.setSchema(schema);
-		return wsdl11Definition;
-	}
+  @PostConstruct
+  private void setTrustedPackagesForJMS() {
+    // because using object messages needs this for security
+    // purposes
+    Class<?> cs[] = new Class<?>[]{
+            VoteRequest.class,
+            List.class
+    };
+    List<String> trustedPackages = Arrays.stream(cs)
+            .map(c -> c.getPackage().getName())
+            .collect(Collectors.toList());
+    connectionFactory.setTrustedPackages(trustedPackages);
+  }
 
-	@Bean
-	public XsdSchema votesSchema() {
-		return new SimpleXsdSchema(new ClassPathResource("schema/votes.xsd"));
-	}
+  @Bean
+  public ServletRegistrationBean messageDispatcherServlet(ApplicationContext applicationContext) {
+    MessageDispatcherServlet servlet = new MessageDispatcherServlet();
+    servlet.setApplicationContext(applicationContext);
+    servlet.setTransformWsdlLocations(true);
+    return new ServletRegistrationBean(servlet, "/ws/*");
+  }
 
-	@Bean
-	public EndpointAdapter messageEndpointAdapter() {
-		return new MessageEndpointAdapter();
-	}
+  /**
+   * http://localhost:8080/ws/votes.wsdl
+   */
+  @Bean(name = "votes")
+  public DefaultWsdl11Definition defaultWsdl11Definition(XsdSchema schema) {
+    DefaultWsdl11Definition wsdl11Definition = new DefaultWsdl11Definition();
+    wsdl11Definition.setPortTypeName("VotePort");
+    wsdl11Definition.setLocationUri("/ws");
+    wsdl11Definition.setTargetNamespace(schema.getTargetNamespace());
+    wsdl11Definition.setSchema(schema);
+    return wsdl11Definition;
+  }
 
-	@Bean
-	public CamelEndpointMapping endpointMapping() {
-		return new CamelEndpointMapping();
-	}
+  @Bean
+  public XsdSchema votesSchema() {
+    return new SimpleXsdSchema(new ClassPathResource("schema/votes.xsd"));
+  }
 
-	@Bean
-	@ConditionalOnClass(value = DataSource.class)
-	public DataSource dataSource() {
-		return new EmbeddedDatabaseBuilder()
-				.setType(EmbeddedDatabaseType.H2)
-				.addScript("classpath:sql/create-tables.sql")
-				.addScript("classpath:sql/insert-data.sql")
-				.build();
-	}
+  @Bean
+  public EndpointAdapter messageEndpointAdapter() {
+    return new MessageEndpointAdapter();
+  }
 
-	public static void main(String[] args) {
-		// clean previous states
-		FileSystemUtils.deleteRecursively(new File("activemq-data"));
+  @Bean
+  public CamelEndpointMapping endpointMapping() {
+    return new CamelEndpointMapping();
+  }
 
-		SpringApplication app = new SpringApplication(App.class);
-		app.setAdditionalProfiles("dev");
-		ConfigurableApplicationContext ctx = app.run();
-		assert ctx != null;
-		CamelSpringBootApplicationController applicationController = ctx
-				.getBean(CamelSpringBootApplicationController.class);
-		 applicationController.blockMainThread();
-	}
+  @Bean
+  @ConditionalOnClass(value = DataSource.class)
+  public DataSource dataSource() {
+    return new EmbeddedDatabaseBuilder()
+            .setType(EmbeddedDatabaseType.H2)
+            .addScript("classpath:sql/create-tables.sql")
+            .addScript("classpath:sql/insert-data.sql")
+            .build();
+  }
+
+  public static void main(String[] args) {
+    // clean previous states
+    FileSystemUtils.deleteRecursively(new File("activemq-data"));
+
+    SpringApplication app = new SpringApplication(App.class);
+    app.setAdditionalProfiles("dev");
+    ConfigurableApplicationContext ctx = app.run();
+    assert ctx != null;
+    CamelSpringBootApplicationController applicationController = ctx
+            .getBean(CamelSpringBootApplicationController.class);
+    applicationController.blockMainThread();
+  }
 }
