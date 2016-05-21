@@ -20,6 +20,8 @@ public class PersonInfoValidationService implements IPersonInfoValidationService
   public Person validate(VoteRequest voteRequest) throws IllegalPersonInfoException {
 
     try {
+
+      System.out.println("MESSAGE RECEIVED WITH: " + voteRequest.getPersonInfo().getPersonalIdentificationDoc());
       return entityManager.createQuery("select p from Person p where p.id = :person_id and p.votingCard.id = :voting_card_id", Person.class)
               .setParameter("person_id", voteRequest.getPersonInfo().getPersonalIdentificationDoc())
               .setParameter("voting_card_id", voteRequest.getPersonInfo().getVotingCard())

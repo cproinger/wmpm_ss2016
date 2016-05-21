@@ -1,8 +1,7 @@
 package at.ac.tuwien.wmpm.domain;
 
-import org.springframework.data.annotation.Id;
-
 import javax.persistence.Entity;
+import javax.persistence.Id;
 import javax.persistence.Table;
 
 @Entity
@@ -11,4 +10,8 @@ public class VotingCard {
 
   @Id
   private String id;
+
+  public String getId() {
+    return id;
+  }
 }

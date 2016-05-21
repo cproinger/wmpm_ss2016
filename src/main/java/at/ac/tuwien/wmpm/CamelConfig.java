@@ -1,5 +1,6 @@
 package at.ac.tuwien.wmpm;
 
+import at.ac.tuwien.wmpm.ss2016.VoteRequest;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
@@ -49,7 +50,8 @@ public class CamelConfig extends SingleRouteCamelConfiguration {
 
       //Create a JAXB data format for a vote request from the votes schema.
       JaxbDataFormat jaxb = new JaxbDataFormat();
-      jaxb.setContextPath("at.ac.tuwien.wmpm.ss2016.VoteRequest");
+      jaxb.setContextPath(VoteRequest.class.getPackage().getName());
+      jaxb.setSchema("classpath:schema/votes.xsd");
 
       //setup web service endpoint route.
       from(VOTES_WEB_SERVICE_ENDPOINT)
