@@ -1,10 +1,11 @@
 package at.ac.tuwien.wmpm;
 
 import at.ac.tuwien.wmpm.ss2016.VoteRequest;
+import at.ac.tuwien.wmpm.ss2016.VoteResponse;
 import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
-import org.apache.camel.model.dataformat.JaxbDataFormat;
+import org.apache.camel.converter.jaxb.JaxbDataFormat;
 import org.apache.camel.spring.javaconfig.SingleRouteCamelConfiguration;
 import org.springframework.context.annotation.Configuration;
 
@@ -33,6 +34,7 @@ public class CamelConfig extends SingleRouteCamelConfiguration {
 
   public static final String ILLEGAL_VOTE_INFO_ENDPOINT = "mock:IllegalVoteInfoException";
 
+  //listen for all requests which have a VoteRequest root element in their body.
   public static final String VOTES_WEB_SERVICE_ENDPOINT = "spring-ws:rootqname:{http://tuwien.ac.at/wmpm/ss2016}VoteRequest?endpointMapping=#endpointMapping";
 
   @Override
@@ -47,15 +49,17 @@ public class CamelConfig extends SingleRouteCamelConfiguration {
 
       //samples();
 
+      String schemaPath = "classpath:schema/votes.xsd";
+
       //Create a JAXB data format for a vote request from the votes schema.
-      JaxbDataFormat jaxb = new JaxbDataFormat();
-      jaxb.setContextPath(VoteRequest.class.getPackage().getName());
-      jaxb.setSchema("classpath:schema/votes.xsd");
+      JaxbDataFormat jaxb = new JaxbDataFormat(VoteRequest.class.getPackage().getName());
 
       //setup web service endpoint route.
       from(VOTES_WEB_SERVICE_ENDPOINT)
               .unmarshal(jaxb)
-              .to("bean:personInfoValidationService?method=validate(${body})");
+              .to("bean:voteRequestService?method=handleRequest(${body})")
+              .marshal(jaxb);
+
 
       //this takes an Object
       from(REMOVE_PERSONAL_INFORMATION_ENDPOINT)
@@ -119,7 +123,7 @@ public class CamelConfig extends SingleRouteCamelConfiguration {
               .to("log:simpleMessages?showHeaders=true");
 
       //http://camel.apache.org/spring-web-services.html
-      JaxbDataFormat jaxb = new JaxbDataFormat(false);
+      JaxbDataFormat jaxb = new JaxbDataFormat();
       jaxb.setContextPath("io.spring.guides.gs_producing_web_service");
 
       //spring-ws web-service ruft ein repository auf und liefert

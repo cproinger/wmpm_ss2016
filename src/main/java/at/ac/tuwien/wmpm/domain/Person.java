@@ -23,6 +23,10 @@ public class Person {
     return this.voted;
   }
 
+  public void setVoted(boolean voted) {
+    this.voted = voted;
+  }
+
   public String getId() {
     return this.id;
   }
