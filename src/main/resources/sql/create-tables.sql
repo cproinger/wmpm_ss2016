@@ -13,3 +13,10 @@ CREATE TABLE polls (
 create TABLE candidate (
 	name VARCHAR(255) PRIMARY KEY
 );
+
+CREATE TABLE resultDataToPublish (
+  id BIGINT IDENTITY,
+  product_name VARCHAR(255) NOT NULL,
+  candidate_name  VARCHAR(255) NOT NULL,
+  comment LONG
+);
