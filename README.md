@@ -41,7 +41,9 @@ gradlew bootRun
 
 #Current status:
 Set up project environment for all team members
+
 All team members have specific tasks specified inside Issues tab on github
+
 Running project with tests
 
 #Time tracking
@@ -52,8 +54,11 @@ https://docs.google.com/spreadsheets/d/149ocru7V8RhDNBeTdGYIPDcPE2QEVjqHYENup_pY
 2. Install mongodb(https://docs.mongodb.com/manual/tutorial/install-mongodb-on-os-x/)
    brew install mongodb
 3. Run mongo
+
    sudo mongod;sudo mongo
 
+//ToDo
+Add BPMN processes with higlighted task parts(which parts of BPMN processes are covered with our tasks)
 
 
 
