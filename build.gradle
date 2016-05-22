@@ -21,8 +21,8 @@ repositories {
 //hm. eigentlich brauch ich das nicht weil ich die klassen ja gar nicht
 //verwenden will, sondern nur die WSDL-definition-klasse. 
 task genJaxb {
-    ext.sourcesDir = "${buildDir}/generated-sources/jaxb"
-    ext.classesDir = "${buildDir}/classes/jaxb"
+    ext.sourcesDir = "build2/generated-sources/jaxb"
+    ext.classesDir = "build2/classes/jaxb"
     ext.schema = "src/main/resources/schema/votes.xsd"
 
     outputs.dir classesDir
