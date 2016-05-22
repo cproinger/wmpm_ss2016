@@ -84,6 +84,7 @@ dependencies {
     compile("org.springframework.boot:spring-boot-starter-ws")
     compile("wsdl4j:wsdl4j")
     jaxb("com.sun.xml.bind:jaxb-xjc:2.2.4-1")
+    
     compile(files(genJaxb.classesDir).builtBy(genJaxb))
     compile("org.springframework.data:spring-data-rest-hal-browser")
     
@@ -93,6 +94,7 @@ dependencies {
     compile('org.apache.camel:camel-spring-ws:2.16.2')
     compile('org.apache.camel:camel-spring-javaconfig:2.16.2')
     compile('org.apache.camel:camel-context:2.16.2')
+    compile('org.apache.camel:camel-xstream:2.16.2')
     compile('org.apache.camel:camel-jolt:2.16.2')
     compile('org.apache.camel:camel-jms:2.16.2')
     compile('org.apache.camel:camel-jpa:2.16.2')
