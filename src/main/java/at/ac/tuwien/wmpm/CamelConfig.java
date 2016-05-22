@@ -45,14 +45,17 @@ public class CamelConfig extends SingleRouteCamelConfiguration {
 		@Override
         public void configure() throws Exception {
 //			samples();
-
+			
+			
 
             //this takes an Object
             from(REMOVE_PERSONAL_INFORMATION_ENDPOINT)
+            	.marshal().json()
+            	.to("jolt:stripAllButVoteInfo.json?inputType=JsonString&outputType=JsonString")
                     //TODO tranform to JSON
                     //TODO use JOLT to strip peronal information
-                    .to("direct:replace_this_with_mongodb_store")
-//				.to("direct:log")
+                    //.to("direct:replace_this_with_mongodb_store")
+				.to("direct:log")
             ;
 
             //will be invoked by a timer route

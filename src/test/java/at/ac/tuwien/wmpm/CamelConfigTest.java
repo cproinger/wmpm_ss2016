@@ -18,6 +18,7 @@ import org.junit.Ignore;
 import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.context.annotation.ComponentScan;
@@ -31,7 +32,11 @@ import com.icegreen.greenmail.junit.GreenMailRule;
 import com.icegreen.greenmail.util.GreenMailUtil;
 import com.icegreen.greenmail.util.ServerSetupTest;
 
+import at.ac.tuwien.wmpm.domain.Vote;
+import at.ac.tuwien.wmpm.repository.VoteRepository;
 import at.ac.tuwien.wmpm.ss2016.VoteInfo;
+import at.ac.tuwien.wmpm.ss2016.VoteInfo.Item;
+import at.ac.tuwien.wmpm.ss2016.VoteRequest;
 
 //TODO needs cleanup
 //@RunWith(CamelSpringJUnit4ClassRunner.class)
@@ -62,6 +67,21 @@ public class CamelConfigTest /* extends AbstractJUnit4SpringContextTests */ {
 	@Produce(uri = CamelConfig.REMOVE_PERSONAL_INFORMATION_ENDPOINT)
     private ProducerTemplate removePersonalInformationRoute;
 
+	@Autowired
+	private VoteRepository voteRepo;
+
+	
+	@Test
+	@Ignore
+	public void testStoreVote() {
+		System.out.println(voteRepo.findAll());
+		VoteInfo vi = new VoteInfo();
+		Item i = new Item();
+		vi.getItem().add(i);
+		i.setCandiate("asdf");
+		voteRepo.save(new Vote(vi));
+	}
+	
     @Test
     @Ignore("fails for now")
     public void testStripPersonalInformationAndSave() {
@@ -74,7 +94,8 @@ public class CamelConfigTest /* extends AbstractJUnit4SpringContextTests */ {
 		 * 		when sent to this route
 		 * 		then only the content of the vote field is stored in mongodb
 		 */
-        removePersonalInformationRoute.sendBody("This is an ex-parrot!");
+    	VoteRequest vr = new VoteRequest();
+        removePersonalInformationRoute.sendBody(vr);
     }
 
     @Produce(uri = CamelConfig.PUBLISH_CURRENT_PROJECTION_ENDPOINT)

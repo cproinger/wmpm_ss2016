@@ -79,6 +79,7 @@ dependencies {
     compile("org.springframework.boot:spring-boot-starter")
     compile("org.springframework.boot:spring-boot-starter-web")
     compile("org.springframework.boot:spring-boot-starter-data-jpa")
+    compile("org.springframework.boot:spring-boot-starter-data-mongodb")
     compile("org.springframework.boot:spring-boot-starter-data-rest")
     compile("org.springframework.boot:spring-boot-starter-ws")
     compile("wsdl4j:wsdl4j")
@@ -92,6 +93,7 @@ dependencies {
     compile('org.apache.camel:camel-spring-ws:2.16.2')
     compile('org.apache.camel:camel-spring-javaconfig:2.16.2')
     compile('org.apache.camel:camel-context:2.16.2')
+    compile('org.apache.camel:camel-jolt:2.16.2')
     compile('org.apache.camel:camel-jms:2.16.2')
     compile('org.apache.camel:camel-jpa:2.16.2')
     compile('org.apache.camel:camel-jaxb:2.16.2')
@@ -139,7 +141,7 @@ task afterEclipseImport {
 	doLast {
 	    compileJava.execute()
 	    def classpath = new XmlParser().parse(file(".classpath"))
-	    new Node(classpath, "classpathentry", [kind: 'src', path: 'build/generated-sources/jaxb']);
+	    new Node(classpath, "classpathentry", [kind: 'src', path: 'build2/generated-sources/jaxb']);
 	    def writer = new FileWriter(file(".classpath"))
 	    def printer = new XmlNodePrinter(new PrintWriter(writer))
 	    printer.setPreserveWhitespace(true)
