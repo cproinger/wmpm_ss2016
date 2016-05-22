@@ -38,3 +38,25 @@ gradlew bootRun
 
 	* Spring-WS Endpoint http://localhost:8080/ws
 		* TIP: Use for example SOAP-UI to create a project from the WSDL-URL (http://localhost:8080/ws/votes.wsdl)
+
+#Current status:
+Set up project environment for all team members
+All team members have specific tasks specified inside Issues tab on github
+Running project with tests
+
+#Time tracking
+https://docs.google.com/spreadsheets/d/149ocru7V8RhDNBeTdGYIPDcPE2QEVjqHYENup_pYy1E/edit?usp=sharing
+
+#Running mongodb on os X
+1. Install brew
+   http://brew.sh/
+2.Install mongodb
+   brew install mongodb
+   https://docs.mongodb.com/manual/tutorial/install-mongodb-on-os-x/
+3. Run mongo
+   sudo mongod
+   sudo mongo
+
+
+
+
