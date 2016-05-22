@@ -33,8 +33,7 @@ public class CamelConfig extends SingleRouteCamelConfiguration {
 
   public static final String ILLEGAL_VOTE_INFO_ENDPOINT = "mock:IllegalVoteInfoException";
 
-  public static final String VOTES_WEB_SERVICE_ENDPOINT = "spring-ws:rootqname:{http://tuwien.ac.at/wmpm/ss2016/}VoteRequest?endpointMapping=#endpointMapping";
-
+  public static final String VOTES_WEB_SERVICE_ENDPOINT = "spring-ws:rootqname:{http://tuwien.ac.at/wmpm/ss2016}VoteRequest?endpointMapping=#endpointMapping";
 
   @Override
   public RouteBuilder route() {
