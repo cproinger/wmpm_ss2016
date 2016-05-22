@@ -11,3 +11,6 @@ INSERT INTO Product(name) values('Product 9');
 insert into candidate(name) values('Beavis');
 insert into candidate(name) values('Butthead');
 
+INSERT INTO resultDataToPublish(product_name, candidate_name, comment) values('Product 1', 'Beavis'  , 'The final result of voting : ' );
+INSERT INTO resultDataToPublish(product_name, candidate_name, comment) values('Product 2', 'Butthead', 'Voting results:  ' );
+
