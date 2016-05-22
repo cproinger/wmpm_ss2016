@@ -1,20 +1,22 @@
 CREATE TABLE Product (
   id BIGINT IDENTITY,
-  name varchar(255) not null unique
+  name VARCHAR(255) NOT NULL UNIQUE
 );
 
 
 CREATE TABLE polls (
   id BIGINT IDENTITY,
   candidate  VARCHAR(255) NOT NULL,
-  vote_count INTEGER           NOT NULL
+  vote_count INTEGER NOT NULL
 );
 
-create TABLE candidate (
+
+CREATE TABLE candidate (
 	name VARCHAR(255) PRIMARY KEY
 );
 
-CREATE TABLE resultDataToPublish (
+
+CREATE TABLE resultDataToPublis (
   id BIGINT IDENTITY,
   product_name VARCHAR(255) NOT NULL,
   candidate_name  VARCHAR(255) NOT NULL,
