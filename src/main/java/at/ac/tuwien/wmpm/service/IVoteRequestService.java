@@ -12,6 +12,6 @@ public interface IVoteRequestService {
    * @param voteRequest, the vote request, for which to handleRequest personal info.
    * @return a VoteResponse
    */
-  JAXBElement handleRequest(VoteRequest voteRequest);
+  JAXBElement<VoteResponse> handleRequest(VoteRequest voteRequest);
 
 }
