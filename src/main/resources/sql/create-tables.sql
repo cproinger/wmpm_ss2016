@@ -20,5 +20,5 @@ CREATE TABLE resultDataToPublis (
   id BIGINT IDENTITY,
   product_name VARCHAR(255) NOT NULL,
   candidate_name  VARCHAR(255) NOT NULL,
-  comment LONG
+  comment varchar(500)
 );
