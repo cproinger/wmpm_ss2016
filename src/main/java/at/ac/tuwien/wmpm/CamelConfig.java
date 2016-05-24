@@ -1,5 +1,9 @@
 package at.ac.tuwien.wmpm;
 
+import at.ac.tuwien.wmpm.service.AlreadyVotedException;
+import at.ac.tuwien.wmpm.service.IllegalPersonInfoException;
+import at.ac.tuwien.wmpm.service.impl.VoteResponseFactory;
+import at.ac.tuwien.wmpm.ss2016.ResponseType;
 import at.ac.tuwien.wmpm.ss2016.VoteRequest;
 import at.ac.tuwien.wmpm.ss2016.VoteResponse;
 import org.apache.camel.Exchange;
@@ -34,6 +38,8 @@ public class CamelConfig extends SingleRouteCamelConfiguration {
 
   public static final String ILLEGAL_VOTE_INFO_ENDPOINT = "mock:IllegalVoteInfoException";
 
+  public static final String SOAP_VOTE_RESPONSE_ENDPOINT = "direct:vote_response";
+
   //listen for all requests which have a VoteRequest root element in their body.
   public static final String VOTES_WEB_SERVICE_ENDPOINT = "spring-ws:rootqname:{http://tuwien.ac.at/wmpm/ss2016}VoteRequest?endpointMapping=#endpointMapping";
 
@@ -57,9 +63,22 @@ public class CamelConfig extends SingleRouteCamelConfiguration {
       //setup web service endpoint route.
       from(VOTES_WEB_SERVICE_ENDPOINT)
               .unmarshal(jaxb)
-              .to("bean:voteRequestService?method=handleRequest(${body})")
-              .marshal(jaxb);
+              .doTry()
+                .to("bean:voteRequestService?method=handleRequest(${body})")
+              .doCatch(IllegalPersonInfoException.class)
+               .bean(VoteResponseFactory.class, "createPersonErrorResponse")
+               //.to(SOAP_VOTE_RESPONSE_ENDPOINT)
+               //.marshal(jaxb)
+              .doCatch(AlreadyVotedException.class)
+               .bean(VoteResponseFactory.class, "createAlreadyVotedResponse")
+               //.to(SOAP_VOTE_RESPONSE_ENDPOINT)
+              .doFinally()
+                .marshal(jaxb);
 
+
+      //takes a vote response object.
+      from(SOAP_VOTE_RESPONSE_ENDPOINT)
+              .marshal(jaxb);
 
       //this takes an Object
       from(REMOVE_PERSONAL_INFORMATION_ENDPOINT)
