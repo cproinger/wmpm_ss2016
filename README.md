@@ -48,7 +48,6 @@ Running project with tests
 
 #Time tracking
 https://docs.google.com/spreadsheets/d/149ocru7V8RhDNBeTdGYIPDcPE2QEVjqHYENup_pYy1E/edit?usp=sharing
-
 #Running mongodb on os X
 1. [ Install brew](http://brew.sh/)
 2. [Install mongodb](https://docs.mongodb.com/manual/tutorial/install-mongodb-on-os-x/)
