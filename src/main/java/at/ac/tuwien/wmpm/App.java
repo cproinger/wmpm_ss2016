@@ -9,6 +9,7 @@ import javax.annotation.PostConstruct;
 import javax.sql.DataSource;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
+import org.apache.camel.component.slack.SlackComponent;
 import org.apache.camel.component.spring.ws.bean.CamelEndpointMapping;
 import org.apache.camel.spring.boot.CamelSpringBootApplicationController;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -90,19 +91,26 @@ public class App extends RepositoryRestMvcConfiguration {
     return new MessageEndpointAdapter();
   }
 
+	@Bean
+	public SlackComponent slack() {
+		SlackComponent sc = new SlackComponent();
+		sc.setWebhookUrl("https://hooks.slack.com/services/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");
+		return sc;
+	}
+	
+	@Bean
+	@ConditionalOnClass(value = DataSource.class)
+	public DataSource dataSource() {
+		return new EmbeddedDatabaseBuilder()
+				.setType(EmbeddedDatabaseType.H2)
+				.addScript("classpath:sql/create-tables.sql")
+				.addScript("classpath:sql/insert-data.sql")
+				.build();
+	}
+
   @Bean
   public CamelEndpointMapping endpointMapping() {
     return new CamelEndpointMapping();
-  }
-
-  @Bean
-  @ConditionalOnClass(value = DataSource.class)
-  public DataSource dataSource() {
-    return new EmbeddedDatabaseBuilder()
-            .setType(EmbeddedDatabaseType.H2)
-            .addScript("classpath:sql/create-tables.sql")
-            .addScript("classpath:sql/insert-data.sql")
-            .build();
   }
 
   public static void main(String[] args) {

@@ -11,6 +11,9 @@ INSERT INTO Product(name) values('Product 9');
 INSERT INTO candidate(name) VALUES('Beavis');
 INSERT INTO candidate(name) VALUES('Butthead');
 
+INSERT INTO resultDataToPublis(product_name, candidate_name, comment) values('Product 1', 'Beavis'  , 'The final result of voting : ' );
+INSERT INTO resultDataToPublis(product_name, candidate_name, comment) values('Product 2', 'Butthead', 'Voting results:  ' );
+
 INSERT INTO voting_card(id) VALUES('df85485fe016bd220f6d87485dbab7c3c4bfc243');
 INSERT INTO voting_card(id) VALUES('a94a8fe5ccb19ba61c4c0873d391e987982fbbd3');
 

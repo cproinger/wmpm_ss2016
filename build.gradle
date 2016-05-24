@@ -21,8 +21,8 @@ repositories {
 //hm. eigentlich brauch ich das nicht weil ich die klassen ja gar nicht
 //verwenden will, sondern nur die WSDL-definition-klasse. 
 task genJaxb {
-    ext.sourcesDir = "${buildDir}/generated-sources/jaxb"
-    ext.classesDir = "${buildDir}/classes/jaxb"
+    ext.sourcesDir = "build2/generated-sources/jaxb"
+    ext.classesDir = "build2/classes/jaxb"
     ext.schema = "src/main/resources/schema/votes.xsd"
 
     outputs.dir classesDir
@@ -79,10 +79,12 @@ dependencies {
     compile("org.springframework.boot:spring-boot-starter")
     compile("org.springframework.boot:spring-boot-starter-web")
     compile("org.springframework.boot:spring-boot-starter-data-jpa")
+    compile("org.springframework.boot:spring-boot-starter-data-mongodb")
     compile("org.springframework.boot:spring-boot-starter-data-rest")
     compile("org.springframework.boot:spring-boot-starter-ws")
     compile("wsdl4j:wsdl4j")
     jaxb("com.sun.xml.bind:jaxb-xjc:2.2.4-1")
+    
     compile(files(genJaxb.classesDir).builtBy(genJaxb))
     compile("org.springframework.data:spring-data-rest-hal-browser")
     
@@ -92,12 +94,16 @@ dependencies {
     compile('org.apache.camel:camel-spring-ws:2.16.2')
     compile('org.apache.camel:camel-spring-javaconfig:2.16.2')
     compile('org.apache.camel:camel-context:2.16.2')
+    compile('org.apache.camel:camel-xstream:2.16.2')
+    compile('org.apache.camel:camel-jolt:2.16.2')
+    compile('org.apache.camel:camel-slack:2.16.2')
     compile('org.apache.camel:camel-jms:2.16.2')
     compile('org.apache.camel:camel-jpa:2.16.2')
     compile('org.apache.camel:camel-jaxb:2.16.2')
     compile('org.apache.camel:camel-stream:2.16.2')
     compile('org.apache.camel:camel-mail:2.16.2')
     compile('org.apache.camel:camel-jdbc:2.16.2')
+    compile('org.apache.camel:camel-sql:2.16.2')
     compile('org.apache.camel:camel-csv:2.16.2')
     compile('javax.mail:javax.mail-api:1.5.5')
     compile('org.apache.activemq:activemq-broker')
@@ -139,7 +145,7 @@ task afterEclipseImport {
 	doLast {
 	    compileJava.execute()
 	    def classpath = new XmlParser().parse(file(".classpath"))
-	    new Node(classpath, "classpathentry", [kind: 'src', path: 'build/generated-sources/jaxb']);
+	    new Node(classpath, "classpathentry", [kind: 'src', path: 'build2/generated-sources/jaxb']);
 	    def writer = new FileWriter(file(".classpath"))
 	    def printer = new XmlNodePrinter(new PrintWriter(writer))
 	    printer.setPreserveWhitespace(true)

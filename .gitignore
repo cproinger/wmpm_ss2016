@@ -1,8 +1,10 @@
 /bin/
 /build/
+/build2/
 /target/
 /.settings/
 /.gradle/
 .classpath
 .project
 .idea
+.DS_Store

@@ -94,7 +94,7 @@ public class CamelConfig extends SingleRouteCamelConfiguration {
                   exchange.getContext();
                 }
               })
-//                    .to("direct:log");
+//            .to("direct:log");
               .to("jdbc:dataSource?useHeadersAsParameters=true")
 //                    .to("log:test?level=INFO&showAll=true")
               .to(ROUTES_AFTER_CANDIDATE_INSERT_ENDPOINT);
