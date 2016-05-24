@@ -67,15 +67,9 @@ public class CamelConfigTest /* extends AbstractJUnit4SpringContextTests */ {
   @Produce(uri = CamelConfig.REMOVE_PERSONAL_INFORMATION_ENDPOINT)
   private ProducerTemplate removePersonalInformationRoute;
 
-<<<<<<< HEAD
-  @Test
-  @Ignore("fails for now")
-  public void testStripPersonalInformationAndSave() {
-=======
 	@Autowired
 	private VoteRepository voteRepo;
 
-	
 	@Test
 	@Ignore
 	public void testStoreVote() {
@@ -90,7 +84,6 @@ public class CamelConfigTest /* extends AbstractJUnit4SpringContextTests */ {
     @Test
     @Ignore("fails for now")
     public void testStripPersonalInformationAndSave() {
->>>>>>> master
 
 		/* TODO Task 1. 
          * 		define any class that has a vote-field
@@ -100,14 +93,10 @@ public class CamelConfigTest /* extends AbstractJUnit4SpringContextTests */ {
 		 * 		when sent to this route
 		 * 		then only the content of the vote field is stored in mongodb
 		 */
-<<<<<<< HEAD
-    removePersonalInformationRoute.sendBody("This is an ex-parrot!");
-  }
-=======
     	VoteRequest vr = new VoteRequest();
-        removePersonalInformationRoute.sendBody(vr);
+      removePersonalInformationRoute.sendBody(vr);
     }
->>>>>>> master
+
 
   @Produce(uri = CamelConfig.PUBLISH_CURRENT_PROJECTION_ENDPOINT)
   private ProducerTemplate publishCurrentProjectionRoute;
