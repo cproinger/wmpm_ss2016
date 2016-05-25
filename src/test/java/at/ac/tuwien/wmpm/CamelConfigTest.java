@@ -3,7 +3,9 @@ package at.ac.tuwien.wmpm;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
+import javax.inject.Inject;
 import javax.mail.MessagingException;
+import javax.sql.DataSource;
 
 import org.apache.camel.EndpointInject;
 import org.apache.camel.Produce;
@@ -22,6 +24,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ActiveProfiles;
@@ -37,6 +40,9 @@ import at.ac.tuwien.wmpm.repository.VoteRepository;
 import at.ac.tuwien.wmpm.ss2016.VoteInfo;
 import at.ac.tuwien.wmpm.ss2016.VoteInfo.Item;
 import at.ac.tuwien.wmpm.ss2016.VoteRequest;
+import org.springframework.test.jdbc.JdbcTestUtils;
+
+import static org.junit.Assert.assertEquals;
 
 //TODO needs cleanup
 //@RunWith(CamelSpringJUnit4ClassRunner.class)
@@ -150,7 +156,14 @@ public class CamelConfigTest /* extends AbstractJUnit4SpringContextTests */ {
         afterCandidateInsert.expectedMinimumMessageCount(1);
         afterCandidateInsert.await(5, TimeUnit.SECONDS);
         afterCandidateInsert.assertIsSatisfied();
+
+
+        assertEquals(10, (long)jdbcTemplate.queryForObject("select vote_count from polls where candidate = 'Trump'", Long.class));
+        assertEquals(13, (long)jdbcTemplate.queryForObject("select vote_count from polls where candidate = 'Lugner'", Long.class));
     }
+
+    @Inject
+    private JdbcTemplate jdbcTemplate;
     
     @Produce(uri = CamelConfig.BALLOTS_QUEUE)
     private ProducerTemplate ballotsQueueProducer;
