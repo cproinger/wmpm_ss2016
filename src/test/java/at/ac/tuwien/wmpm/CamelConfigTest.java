@@ -122,7 +122,7 @@ public class CamelConfigTest /* extends AbstractJUnit4SpringContextTests */ {
         Date now = new Date();
 //		MockEndpoint publishToSlackMock = getMockEndpoint("mock:direct:push_to_slack__mockable");
 //		
-        publishToSlackMock.expectedBodiesReceived(now.toString() + " someData");
+        publishToSlackMock.expectedBodiesReceived("i expect the result string to be this");
 
         publishCurrentProjectionRoute.sendBody(now);
 
