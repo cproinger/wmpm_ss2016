@@ -72,7 +72,7 @@ public class CamelConfigTest /* extends AbstractJUnit4SpringContextTests */ {
 
 	
 	@Test
-	@Ignore
+	
 	public void testStoreVote() {
 		System.out.println(voteRepo.findAll());
 		VoteInfo vi = new VoteInfo();
@@ -83,7 +83,7 @@ public class CamelConfigTest /* extends AbstractJUnit4SpringContextTests */ {
 	}
 	
     @Test
-    @Ignore("fails for now")
+    //@Ignore("fails for now")
     public void testStripPersonalInformationAndSave() {
 
 		/* TODO Task 1. 
@@ -95,6 +95,11 @@ public class CamelConfigTest /* extends AbstractJUnit4SpringContextTests */ {
 		 * 		then only the content of the vote field is stored in mongodb
 		 */
     	VoteRequest vr = new VoteRequest();
+    	VoteInfo vi = new VoteInfo();
+    	Item i = new Item();
+    	i.setCandiate("adsf");
+		vi.getItem().add(i);
+		vr.setVoteInfo(vi);
         removePersonalInformationRoute.sendBody(vr);
     }
 
