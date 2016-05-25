@@ -3,6 +3,7 @@ package at.ac.tuwien.wmpm;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
+import javax.inject.Inject;
 import javax.mail.MessagingException;
 
 import org.apache.camel.EndpointInject;
@@ -22,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ActiveProfiles;
@@ -37,6 +39,8 @@ import at.ac.tuwien.wmpm.repository.VoteRepository;
 import at.ac.tuwien.wmpm.ss2016.VoteInfo;
 import at.ac.tuwien.wmpm.ss2016.VoteInfo.Item;
 import at.ac.tuwien.wmpm.ss2016.VoteRequest;
+
+import static org.junit.Assert.assertEquals;
 
 //TODO needs cleanup
 //@RunWith(CamelSpringJUnit4ClassRunner.class)
@@ -138,24 +142,21 @@ public class CamelConfigTest /* extends AbstractJUnit4SpringContextTests */ {
     
     @Test
     public void testFromMailWithCSV_toEndResultTables() throws MessagingException, InterruptedException {
-		/*
-		 * TODO Task 3. 
-		 * 		define a table in /wmpm/src/main/resources/sql/create-tables.sql
-		 * 		(we can think about how to interface that with task 2 another time
-		 * 		or 2 people work together on this)
-		 * 		get CSV from mail-server
-		 * 		write it into the database
-		 */
         GreenMailUtil.sendTextEmailTest("to@localhost.com", "from@localhost.com", "subject",
                 "Trump,10\nLugner,13"
         );
 
-        //TODO test if inserts where successful
-//        afterCandidateInsert.expectedHeaderReceived("test", "test");
         afterCandidateInsert.expectedMinimumMessageCount(1);
         afterCandidateInsert.await(5, TimeUnit.SECONDS);
         afterCandidateInsert.assertIsSatisfied();
+
+        assertEquals(10, (long) jdbcTemplate.queryForObject("select vote_count from polls where candidate = 'Trump'", Long.class));
+        assertEquals(13, (long) jdbcTemplate.queryForObject("select vote_count from polls where candidate = 'Lugner'", Long.class));
     }
+
+    @Inject
+    private JdbcTemplate jdbcTemplate;
+
     
     @Produce(uri = CamelConfig.BALLOTS_QUEUE)
     private ProducerTemplate ballotsQueueProducer;
