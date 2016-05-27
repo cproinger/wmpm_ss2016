@@ -26,7 +26,7 @@ public class CamelConfig extends SingleRouteCamelConfiguration {
     
     public static final String ROUTES_AFTER_CANDIDATE_INSERT_ENDPOINT = "{{routes.after_candidate_insert}}";
 
-    public static final String POP3_URI = "pop3://{{mail.host}}:{{mail.port}}?consumer.delay={{mail.poll-interval}}&username={{mail.user}}&password={{mail.password}}";
+    public static final String POP3_URI = "pop3://{{mail.host}}:{{mail.port}}?consumer.delay={{mail.poll-interval}}&username={{mail.user}}&password={{mail.password}}&delete=true";
 
 	public static final String BALLOTS_QUEUE = "jms:queue:ballots";
 	public static final String ILLEGAL_VOTE_INFO_ENDPOINT = "mock:IllegalVoteInfoException";
@@ -84,15 +84,8 @@ public class CamelConfig extends SingleRouteCamelConfiguration {
                     .setHeader("candidate", simple("${body.get(0)}"))
                     .setHeader("vote_count", simple("${body.get(1)}"))
                     .setBody(simple("insert into polls(candidate, vote_count) values (:?candidate, :?vote_count);"))
-                    .process(new Processor() {
-                        @Override
-                        public void process(Exchange exchange) throws Exception {
-                            exchange.getContext();
-                        }
-                    })
-//                    .to("direct:log");
+
                     .to("jdbc:dataSource?useHeadersAsParameters=true")
-//                    .to("log:test?level=INFO&showAll=true")
                     .to(ROUTES_AFTER_CANDIDATE_INSERT_ENDPOINT);
             
             from(BALLOTS_QUEUE)

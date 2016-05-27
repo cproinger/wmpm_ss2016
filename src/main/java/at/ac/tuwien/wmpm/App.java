@@ -23,6 +23,7 @@ import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.PropertySource;
 import org.springframework.core.io.ClassPathResource;
 import org.springframework.data.rest.webmvc.config.RepositoryRestMvcConfiguration;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseBuilder;
 import org.springframework.jdbc.datasource.embedded.EmbeddedDatabaseType;
 import org.springframework.jms.annotation.EnableJms;
@@ -102,8 +103,13 @@ public class App extends RepositoryRestMvcConfiguration {
 		sc.setWebhookUrl("https://hooks.slack.com/services/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");
 		return sc;
 	}
-	
-	@Bean
+
+    @Bean public JdbcTemplate jdbcTemplate(DataSource dataSource) {
+        return new JdbcTemplate(dataSource);
+    }
+
+
+    @Bean
 	@ConditionalOnClass(value = DataSource.class)
 	public DataSource dataSource() {
 		return new EmbeddedDatabaseBuilder()
