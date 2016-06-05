@@ -58,16 +58,16 @@ public class CamelConfig extends SingleRouteCamelConfiguration {
 				.to("direct:log")
             ;
 
-            //will be invoked by a timer route
+               //will be invoked by a timer route
             from(PUBLISH_CURRENT_PROJECTION_ENDPOINT)
                     //TODO select data from the end-results table(s)
-            		.to("sql:select * from resultDataToPublish?dataSource=dataSource")
-            		// query return List<Map<String, Object>> type
-            		
+                    .to("sql:select * from resultDataToPublish?dataSource=dataSource")
+                    // query return List<Map<String, Object>> type
+                    
                     //TODO filter message if there are no results yet
-            		//.filter(body().isNotNull())
+                    //.filter(body().isNotNull())
 
-		            .to("bean:slackComposer?method=marshal(${body})")
+                    .to("bean:slackComposer?method=marshal(${body})")
 
                     //TODO format a string be pushed to slack
                     //(image maybe later, don't know if apache-camel-slack lets you do that)
