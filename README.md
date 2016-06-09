@@ -58,9 +58,20 @@ https://docs.google.com/spreadsheets/d/149ocru7V8RhDNBeTdGYIPDcPE2QEVjqHYENup_pY
 //ToDo
 Add BPMN processes with higlighted task parts(which parts of BPMN processes are covered with our tasks)
 
+For Unit tests. If no mongodb server is running, it uses a fake one which does not 
+suuport all the features of a real mongodb (which we are not using anyway). 
+
 # Our Slack Team
 
 - https://wmgroup4.slack.com/
+
+# Using a real database. 
+
+Run the application with
+
+spring.datasource.url=jdbc:h2:./database
+
+which will create a database in the working directory if none exists. 
 
 
 
