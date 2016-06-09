@@ -63,7 +63,9 @@ import static org.junit.Assert.assertEquals;
 //@EnableAutoConfiguration 
 @EnableAutoConfiguration
 @ComponentScan
-@ActiveProfiles("test")
+@ActiveProfiles({"test"
+//	, "fakeMongo" //uncomment this to use a mock instead of a real mongo server
+	})
 public class CamelConfigTest /* extends AbstractJUnit4SpringContextTests */ {
 
     private static final int AWAIT_TIME = 5;
