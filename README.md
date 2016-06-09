@@ -67,11 +67,27 @@ suuport all the features of a real mongodb (which we are not using anyway).
 
 # Using a real database. 
 
+
+## SQL Database
 Run the application with
 
 spring.datasource.url=jdbc:h2:./database
 
 which will create a database in the working directory if none exists. 
 
+## Change MongoDB URL
 
+Out of the box, the application will try to connect to "mongodb://localhost/test" with default credentials. 
 
+If you want to use a differnt database run the application with the system property
+
+```
+spring.data.mongodb.uri=<your-url>
+
+```
+
+for example, further details can be found at http://docs.spring.io/spring-boot/docs/current/reference/html/boot-features-nosql.html
+
+```
+spring.data.mongodb.uri=mongodb://user:secret@mongo1.example.com:12345,mongo2.example.com:23456/test
+```
