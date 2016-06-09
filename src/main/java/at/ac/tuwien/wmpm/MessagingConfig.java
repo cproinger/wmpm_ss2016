@@ -9,6 +9,7 @@ import javax.annotation.PostConstruct;
 import org.apache.activemq.ActiveMQConnectionFactory;
 import org.apache.camel.component.slack.SlackComponent;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.jms.annotation.EnableJms;
@@ -36,11 +37,13 @@ public class MessagingConfig {
 		connectionFactory.setTrustedPackages(trustedPackages);
 	}
 
+	@Value(value = "${slack.url}")
+	private String slackUrl;
 
 	@Bean
 	public SlackComponent slack() {
 		SlackComponent sc = new SlackComponent();
-		sc.setWebhookUrl("https://hooks.slack.com/services/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");
+		sc.setWebhookUrl(slackUrl);
 		return sc;
 	}
 }

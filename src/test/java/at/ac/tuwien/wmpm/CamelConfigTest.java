@@ -211,6 +211,20 @@ public class CamelConfigTest /* extends AbstractJUnit4SpringContextTests */ {
     	voteExtractedMock.assertIsNotSatisfied();
     	illegalVoteInfoException.assertIsSatisfied();
     }
+    
+    @Test
+    public void testBallotVerification_valid_voteExtracted() throws InterruptedException {
+    	voteExtractedMock.expectedMinimumMessageCount(1);
+    	illegalVoteInfoException.expectedMessageCount(1);
+
+    	VoteInfo info = new VoteInfo();
+    	info.getItem().add(createVoteItem("Beavis", "x"));
+		ballotsQueueProducer.sendBody(info);
+		
+    	voteExtractedMock.await(AWAIT_TIME, TimeUnit.SECONDS);
+    	voteExtractedMock.assertIsSatisfied();
+    }
+    
 
 	private VoteInfo.Item createVoteItem(String name, String mark) {
 		VoteInfo.Item e = new VoteInfo.Item();

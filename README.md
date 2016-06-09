@@ -65,6 +65,14 @@ suuport all the features of a real mongodb (which we are not using anyway).
 
 - https://wmgroup4.slack.com/
 
+## Using a different slack team
+
+Run the application with the a different value for
+
+```
+slack.url=<your-webhook-url>
+```
+
 # Using a real database. 
 
 
