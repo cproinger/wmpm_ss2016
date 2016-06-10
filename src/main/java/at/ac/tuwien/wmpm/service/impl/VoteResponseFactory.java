@@ -11,7 +11,7 @@ import javax.xml.bind.JAXBElement;
 public class VoteResponseFactory {
 
   public JAXBElement<VoteResponse> createPersonErrorResponse() {
-    return this.createVoteResponseFromType(ResponseType.PERSON_INFO_ERROR);
+   return this.createVoteResponseFromType(ResponseType.PERSON_INFO_ERROR);
   }
 
   public JAXBElement<VoteResponse> createAlreadyVotedResponse() {

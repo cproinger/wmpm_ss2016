@@ -65,16 +65,19 @@ public class CamelConfig extends SingleRouteCamelConfiguration {
               .unmarshal(jaxb)
               .doTry()
                 .to("bean:voteRequestService?method=handleRequest(${body})")
+                .log("success")
+                //.to(REMOVE_PERSONAL_INFORMATION_ENDPOINT)
               .doCatch(IllegalPersonInfoException.class)
-               .bean(VoteResponseFactory.class, "createPersonErrorResponse")
-               //.to(SOAP_VOTE_RESPONSE_ENDPOINT)
-               //.marshal(jaxb)
+                .bean(VoteResponseFactory.class, "createPersonErrorResponse")
+                .log("${body}")
+                .log("person error")
+                //.to(SOAP_VOTE_RESPONSE_ENDPOINT)
               .doCatch(AlreadyVotedException.class)
-               .bean(VoteResponseFactory.class, "createAlreadyVotedResponse")
-               //.to(SOAP_VOTE_RESPONSE_ENDPOINT)
-              .doFinally()
-                .marshal(jaxb);
-
+                .to("bean:voteResponseFactory?method=createAlreadyVotedResponse()")
+                .log("already voted")
+                //.to(SOAP_VOTE_RESPONSE_ENDPOINT)
+              .end()
+              .marshal(jaxb);
 
       //takes a vote response object.
       from(SOAP_VOTE_RESPONSE_ENDPOINT)
