@@ -10,7 +10,9 @@ import org.apache.camel.Exchange;
 import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.converter.jaxb.JaxbDataFormat;
+import org.apache.camel.component.spring.ws.bean.CamelEndpointMapping;
 import org.apache.camel.spring.javaconfig.SingleRouteCamelConfiguration;
+import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 import at.ac.tuwien.wmpm.service.IllegalVoteInfoException;
@@ -32,7 +34,7 @@ public class CamelConfig extends SingleRouteCamelConfiguration {
 
   public static final String ROUTES_AFTER_CANDIDATE_INSERT_ENDPOINT = "{{routes.after_candidate_insert}}";
 
-  public static final String POP3_URI = "pop3://{{mail.host}}:{{mail.port}}?consumer.delay={{mail.poll-interval}}&username={{mail.user}}&password={{mail.password}}";
+  public static final String POP3_URI = "pop3://{{mail.host}}:{{mail.port}}?consumer.delay={{mail.poll-interval}}&username={{mail.user}}&password={{mail.password}}&delete=true";
 
   public static final String BALLOTS_QUEUE = "jms:queue:ballots";
 
@@ -53,8 +55,6 @@ public class CamelConfig extends SingleRouteCamelConfiguration {
     @Override
     public void configure() throws Exception {
 
-      //samples();
-
       String schemaPath = "classpath:schema/votes.xsd";
 
       //Create a JAXB data format for a vote request from the votes schema.
@@ -66,16 +66,16 @@ public class CamelConfig extends SingleRouteCamelConfiguration {
               .doTry()
                 .to("bean:voteRequestService?method=handleRequest(${body})")
                 .log("success")
-                //.to(REMOVE_PERSONAL_INFORMATION_ENDPOINT)
+              //.to(REMOVE_PERSONAL_INFORMATION_ENDPOINT)
               .doCatch(IllegalPersonInfoException.class)
                 .bean(VoteResponseFactory.class, "createPersonErrorResponse")
                 .log("${body}")
                 .log("person error")
-                //.to(SOAP_VOTE_RESPONSE_ENDPOINT)
+              //.to(SOAP_VOTE_RESPONSE_ENDPOINT)
               .doCatch(AlreadyVotedException.class)
                 .to("bean:voteResponseFactory?method=createAlreadyVotedResponse()")
                 .log("already voted")
-                //.to(SOAP_VOTE_RESPONSE_ENDPOINT)
+              //.to(SOAP_VOTE_RESPONSE_ENDPOINT)
               .end()
               .marshal(jaxb);
 
@@ -83,18 +83,28 @@ public class CamelConfig extends SingleRouteCamelConfiguration {
       from(SOAP_VOTE_RESPONSE_ENDPOINT)
               .marshal(jaxb);
 
+
       //this takes an Object
       from(REMOVE_PERSONAL_INFORMATION_ENDPOINT)
+              .marshal().json()
+              .to("jolt:stripAllButVoteInfo.json?inputType=JsonString&outputType=JsonString")
               //TODO tranform to JSON
               //TODO use JOLT to strip peronal information
-              .to("direct:replace_this_with_mongodb_store")
-//				.to("direct:log")
+              //.to("direct:replace_this_with_mongodb_store")
+              .to("direct:log")
       ;
 
       //will be invoked by a timer route
       from(PUBLISH_CURRENT_PROJECTION_ENDPOINT)
               //TODO select data from the end-results table(s)
+              .to("sql:select * from resultDataToPublish?dataSource=dataSource")
+              // query return List<Map<String, Object>> type
+
               //TODO filter message if there are no results yet
+              //.filter(body().isNotNull())
+
+              .to("bean:slackComposer?method=marshal(${body})")
+
               //TODO format a string be pushed to slack
               //(image maybe later, don't know if apache-camel-slack lets you do that)
               .to(SLACK_ENDPOINT);
@@ -110,21 +120,13 @@ public class CamelConfig extends SingleRouteCamelConfiguration {
               .setHeader("candidate", simple("${body.get(0)}"))
               .setHeader("vote_count", simple("${body.get(1)}"))
               .setBody(simple("insert into polls(candidate, vote_count) values (:?candidate, :?vote_count);"))
-              .process(new Processor() {
-                @Override
-                public void process(Exchange exchange) throws Exception {
-                  exchange.getContext();
-                }
-              })
-//            .to("direct:log");
               .to("jdbc:dataSource?useHeadersAsParameters=true")
-//                    .to("log:test?level=INFO&showAll=true")
               .to(ROUTES_AFTER_CANDIDATE_INSERT_ENDPOINT);
 
       from(BALLOTS_QUEUE)
               .onException(IllegalVoteInfoException.class)
-                .to(ILLEGAL_VOTE_INFO_ENDPOINT)
-                .end()
+              .to(ILLEGAL_VOTE_INFO_ENDPOINT)
+              .end()
               .to("bean:extractCandidateVoteService?method=extract(${body})")
               .to("bean:verifyCandidateVoteItemService?method=lookupCandidate(${body})")
               .to("mock:VoteExtracted");
@@ -133,6 +135,7 @@ public class CamelConfig extends SingleRouteCamelConfiguration {
 
 
     private void samples() {
+
 //			Predicate isQuit = body().isEqualTo("quit");
       from("stream:in?promptMessage=Enter something: ")
 //				.transform().simple("ref:myBean")
@@ -166,8 +169,6 @@ public class CamelConfig extends SingleRouteCamelConfiguration {
       from("direct:log")
               .convertBodyTo(String.class)
               .to("log:Camel?level=INFO");
-
-
     }
   }
 }

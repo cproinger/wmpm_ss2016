@@ -3,6 +3,7 @@ package at.ac.tuwien.wmpm;
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
 
+import javax.inject.Inject;
 import javax.mail.MessagingException;
 
 import org.apache.camel.EndpointInject;
@@ -22,6 +23,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.autoconfigure.EnableAutoConfiguration;
 import org.springframework.boot.test.SpringApplicationConfiguration;
 import org.springframework.context.annotation.ComponentScan;
+import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.test.annotation.DirtiesContext;
 import org.springframework.test.annotation.DirtiesContext.ClassMode;
 import org.springframework.test.context.ActiveProfiles;
@@ -37,6 +39,8 @@ import at.ac.tuwien.wmpm.repository.VoteRepository;
 import at.ac.tuwien.wmpm.ss2016.VoteInfo;
 import at.ac.tuwien.wmpm.ss2016.VoteInfo.Item;
 import at.ac.tuwien.wmpm.ss2016.VoteRequest;
+
+import static org.junit.Assert.assertEquals;
 
 //TODO needs cleanup
 //@RunWith(CamelSpringJUnit4ClassRunner.class)
@@ -59,7 +63,11 @@ import at.ac.tuwien.wmpm.ss2016.VoteRequest;
 //@EnableAutoConfiguration 
 @EnableAutoConfiguration
 @ComponentScan
-@ActiveProfiles("test")
+@ActiveProfiles({"test"
+        //this profiles makes you use a fake mongo-server
+        //if no real server is available
+        //, "fakeMongo"
+})
 public class CamelConfigTest /* extends AbstractJUnit4SpringContextTests */ {
 
   private static final int AWAIT_TIME = 5;
@@ -67,36 +75,41 @@ public class CamelConfigTest /* extends AbstractJUnit4SpringContextTests */ {
   @Produce(uri = CamelConfig.REMOVE_PERSONAL_INFORMATION_ENDPOINT)
   private ProducerTemplate removePersonalInformationRoute;
 
-	@Autowired
-	private VoteRepository voteRepo;
+  @Autowired
+  private VoteRepository voteRepo;
 
-	@Test
-	@Ignore
-	public void testStoreVote() {
-		System.out.println(voteRepo.findAll());
-		VoteInfo vi = new VoteInfo();
-		Item i = new Item();
-		vi.getItem().add(i);
-		i.setCandiate("asdf");
-		voteRepo.save(new Vote(vi));
-	}
-	
-    @Test
-    @Ignore("fails for now")
-    public void testStripPersonalInformationAndSave() {
 
-		/* TODO Task 1. 
+  @Test
+
+  public void testStoreVote() {
+    System.out.println(voteRepo.findAll());
+    VoteInfo vi = new VoteInfo();
+    Item i = new Item();
+    vi.getItem().add(i);
+    i.setCandiate("asdf");
+    voteRepo.save(new Vote(vi));
+  }
+
+  @Test
+  @Ignore("fails for now")
+  public void testStripPersonalInformationAndSave() {
+
+		/* TODO Task 1.
          * 		define any class that has a vote-field
-		 * 		and other fields. 
-		 * 		
-		 * 		given an objects of such a class 
+		 * 		and other fields.
+		 *
+		 * 		given an objects of such a class
 		 * 		when sent to this route
 		 * 		then only the content of the vote field is stored in mongodb
 		 */
-    	VoteRequest vr = new VoteRequest();
-      removePersonalInformationRoute.sendBody(vr);
-    }
-
+    VoteRequest vr = new VoteRequest();
+    VoteInfo vi = new VoteInfo();
+    Item i = new Item();
+    i.setCandiate("adsf");
+    vi.getItem().add(i);
+    vr.setVoteInfo(vi);
+    removePersonalInformationRoute.sendBody(vr);
+  }
 
   @Produce(uri = CamelConfig.PUBLISH_CURRENT_PROJECTION_ENDPOINT)
   private ProducerTemplate publishCurrentProjectionRoute;
@@ -109,14 +122,14 @@ public class CamelConfigTest /* extends AbstractJUnit4SpringContextTests */ {
   public void testEndResultDataToPublishableString() throws InterruptedException {
 
 		/*
-     * TODO Task 2.
+		 * TODO Task 2.
 		 * 		define a table in /wmpm/src/main/resources/sql/create-tables.sql
 		 * 		use a jdbc-template for example to change the Data accordingly
 		 * 		add transformations
 		 */
     Date now = new Date();
 //		MockEndpoint publishToSlackMock = getMockEndpoint("mock:direct:push_to_slack__mockable");
-//		
+//
     publishToSlackMock.expectedBodiesReceived(now.toString() + " someData");
 
     publishCurrentProjectionRoute.sendBody(now);
@@ -133,24 +146,21 @@ public class CamelConfigTest /* extends AbstractJUnit4SpringContextTests */ {
 
   @Test
   public void testFromMailWithCSV_toEndResultTables() throws MessagingException, InterruptedException {
-		/*
-		 * TODO Task 3. 
-		 * 		define a table in /wmpm/src/main/resources/sql/create-tables.sql
-		 * 		(we can think about how to interface that with task 2 another time
-		 * 		or 2 people work together on this)
-		 * 		get CSV from mail-server
-		 * 		write it into the database
-		 */
     GreenMailUtil.sendTextEmailTest("to@localhost.com", "from@localhost.com", "subject",
             "Trump,10\nLugner,13"
     );
 
-    //TODO test if inserts where successful
-//        afterCandidateInsert.expectedHeaderReceived("test", "test");
     afterCandidateInsert.expectedMinimumMessageCount(1);
     afterCandidateInsert.await(5, TimeUnit.SECONDS);
     afterCandidateInsert.assertIsSatisfied();
+
+    assertEquals(10, (long) jdbcTemplate.queryForObject("select vote_count from polls where candidate = 'Trump'", Long.class));
+    assertEquals(13, (long) jdbcTemplate.queryForObject("select vote_count from polls where candidate = 'Lugner'", Long.class));
   }
+
+  @Inject
+  private JdbcTemplate jdbcTemplate;
+
 
   @Produce(uri = CamelConfig.BALLOTS_QUEUE)
   private ProducerTemplate ballotsQueueProducer;
@@ -201,6 +211,20 @@ public class CamelConfigTest /* extends AbstractJUnit4SpringContextTests */ {
     voteExtractedMock.assertIsNotSatisfied();
     illegalVoteInfoException.assertIsSatisfied();
   }
+
+  @Test
+  public void testBallotVerification_valid_voteExtracted() throws InterruptedException {
+    voteExtractedMock.expectedMinimumMessageCount(1);
+    illegalVoteInfoException.expectedMessageCount(1);
+
+    VoteInfo info = new VoteInfo();
+    info.getItem().add(createVoteItem("Beavis", "x"));
+    ballotsQueueProducer.sendBody(info);
+
+    voteExtractedMock.await(AWAIT_TIME, TimeUnit.SECONDS);
+    voteExtractedMock.assertIsSatisfied();
+  }
+
 
   private VoteInfo.Item createVoteItem(String name, String mark) {
     VoteInfo.Item e = new VoteInfo.Item();
