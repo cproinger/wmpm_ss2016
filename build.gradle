@@ -97,6 +97,7 @@ dependencies {
     compile('org.apache.camel:camel-context:2.16.2')
     compile('org.apache.camel:camel-jackson:2.16.2')
     compile('org.apache.camel:camel-jolt:2.16.2')
+    compile('org.apache.camel:camel-mongodb:2.16.2')
     compile('org.apache.camel:camel-slack:2.16.2')
     compile('org.apache.camel:camel-jms:2.16.2')
     compile('org.apache.camel:camel-jpa:2.16.2')

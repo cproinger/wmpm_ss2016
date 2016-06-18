@@ -2,6 +2,7 @@ package at.ac.tuwien.wmpm;
 
 import java.util.Date;
 import java.util.concurrent.TimeUnit;
+import java.util.stream.Collectors;
 
 import javax.inject.Inject;
 import javax.mail.MessagingException;
@@ -87,11 +88,15 @@ public class CamelConfigTest /* extends AbstractJUnit4SpringContextTests */ {
 		Item i = new Item();
 		vi.getItem().add(i);
 		i.setCandiate("asdf");
+		Item i2 = new Item();
+		i2.setCandiate("axc");
+		i2.setMark("xxx");
+		vi.getItem().add(i2);
 		voteRepo.save(new Vote(vi));
 	}
 	
     @Test
-    @Ignore("fails for now")
+    //@Ignore("fails for now")
     public void testStripPersonalInformationAndSave() {
 
 		/* TODO Task 1. 
@@ -108,7 +113,11 @@ public class CamelConfigTest /* extends AbstractJUnit4SpringContextTests */ {
     	i.setCandiate("adsf");
 		vi.getItem().add(i);
 		vr.setVoteInfo(vi);
+		
+		long countBefore = voteRepo.count();
         removePersonalInformationRoute.sendBody(vr);
+        assertEquals(countBefore + 1, voteRepo.count());
+        voteRepo.findAll().stream().map(v -> v.getVoteInfo().getItem().get(0).getCandiate()).collect(Collectors.toList()).toString();
     }
 
     @Produce(uri = CamelConfig.PUBLISH_CURRENT_PROJECTION_ENDPOINT)

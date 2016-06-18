@@ -1,0 +1,16 @@
+[
+  {
+    "operation": "shift",
+    "spec": {
+      "voteInfo": {
+        "item": "voteInfo.item"
+      }
+    }
+  },
+  {
+    "operation": "default",
+    "spec": {
+      "_class": "at.ac.tuwien.wmpm.domain.Vote"
+    }
+  }
+]

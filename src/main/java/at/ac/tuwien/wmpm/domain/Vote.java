@@ -23,4 +23,8 @@ public class Vote {
 	public Vote(VoteInfo voteInfo) {
 		this.voteInfo = voteInfo;
 	}
+	
+	public VoteInfo getVoteInfo() {
+		return voteInfo;
+	}
 }
