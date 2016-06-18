@@ -5,6 +5,7 @@ import org.apache.camel.Processor;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.component.spring.ws.bean.CamelEndpointMapping;
 import org.apache.camel.model.dataformat.JaxbDataFormat;
+import org.apache.camel.model.dataformat.JsonLibrary;
 import org.apache.camel.spring.javaconfig.SingleRouteCamelConfiguration;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -53,7 +54,7 @@ public class CamelConfig extends SingleRouteCamelConfiguration {
 
             //this takes an Object
             from(REMOVE_PERSONAL_INFORMATION_ENDPOINT)
-            	.marshal().json()
+            	.marshal().json(JsonLibrary.Jackson)
             	.to("jolt:stripAllButVoteInfo.json?inputType=JsonString&outputType=JsonString")
                     //TODO tranform to JSON
                     //TODO use JOLT to strip peronal information
