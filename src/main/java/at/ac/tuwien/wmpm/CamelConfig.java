@@ -34,7 +34,7 @@ public class CamelConfig extends SingleRouteCamelConfiguration {
 	public static final String BALLOTS_QUEUE = "jms:queue:ballots";
 	public static final String ILLEGAL_VOTE_INFO_ENDPOINT = "mock:IllegalVoteInfoException";
 
-
+	
 	
     @Override
     public RouteBuilder route() {
@@ -58,6 +58,12 @@ public class CamelConfig extends SingleRouteCamelConfiguration {
             	.to("jolt:stripAllButVoteInfo.json?inputType=JsonString&outputType=JsonString")
                 .to("mongodb:mongo?database=test&collection=votes&operation=insert")
             ;
+            from("direct:BallotBox")
+            	.to("bean:voteRepository?method=findAll()")
+            	.split(body())
+            	//.to("log:BALLOTBOX?level=INFO")
+            	.to(BALLOTS_QUEUE)
+            	;
 
                //will be invoked by a timer route
             from(PUBLISH_CURRENT_PROJECTION_ENDPOINT)

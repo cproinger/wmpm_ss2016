@@ -27,4 +27,11 @@ public class Vote {
 	public VoteInfo getVoteInfo() {
 		return voteInfo;
 	}
+
+	@Override
+	public String toString() {
+		return "Vote [id=" + id + ", voteInfo=" + voteInfo + "]";
+	}
+	
+	
 }
