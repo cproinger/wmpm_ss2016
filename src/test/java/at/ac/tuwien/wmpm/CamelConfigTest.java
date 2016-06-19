@@ -135,25 +135,23 @@ public class CamelConfigTest /* extends AbstractJUnit4SpringContextTests */ {
   @Test
   //@Ignore("fails for now")
   public void testEndResultDataToPublishableString() throws InterruptedException {
-    jdbcTemplate.execute("insert into polls(candidate, vote_count) values('Trump', 345)");
-    jdbcTemplate.execute("insert into polls(candidate, vote_count) values('Hillary', 645)");
-    jdbcTemplate.execute("insert into polls(candidate, vote_count) values('John', 497)");
-    jdbcTemplate.execute("insert into polls(candidate, vote_count) values('Tom', 521)");
+  	jdbcTemplate.execute("insert into polls(candidate, vote_count) values('John', 497)");
+  	jdbcTemplate.execute("insert into polls(candidate, vote_count) values('Tom', 521)");
 
 		/*
-		 * TODO Task 2. 
+		 * Task 2. 
 		 * 		define a table in /wmpm/src/main/resources/sql/create-tables.sql
 		 * 		use a jdbc-template for example to change the Data accordingly
 		 * 		add transformations
 		 */
-    Date now = new Date();
+      Date now = new Date();
 //		MockEndpoint publishToSlackMock = getMockEndpoint("mock:direct:push_to_slack__mockable");
 //		
-    publishToSlackMock.expectedBodiesReceived("Trump 17,18 % John 24,75 % Tom 25,95 % Hillary 32,11 % ");
+      publishToSlackMock.expectedBodyReceived().body().contains("John 48,82 %\nTom 51,18 %\n");
 
-    publishCurrentProjectionRoute.sendBody(now);
+      publishCurrentProjectionRoute.sendBody(now);
 
-    publishToSlackMock.assertIsSatisfied();
+      publishToSlackMock.assertIsSatisfied();
   }
 
   //    @Rule
