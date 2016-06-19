@@ -53,16 +53,16 @@ public class CamelConfig extends SingleRouteCamelConfiguration {
 			
 
             //this takes an Object
-//            from(REMOVE_PERSONAL_INFORMATION_ENDPOINT)
-//            	.marshal().json(JsonLibrary.Jackson)
-//            	.to("jolt:stripAllButVoteInfo.json?inputType=JsonString&outputType=JsonString")
-//                .to("mongodb:mongo?database=test&collection=votes&operation=insert")
-//            ;
-//            from("direct:BallotBox")
-//            	.to("bean:voteRepository?method=findAll()")
-//            	.split(body())
-//            	.to(BALLOTS_QUEUE)
-//            	;
+            from(REMOVE_PERSONAL_INFORMATION_ENDPOINT)
+            	.marshal().json(JsonLibrary.Jackson)
+            	.to("jolt:stripAllButVoteInfo.json?inputType=JsonString&outputType=JsonString")
+                .to("mongodb:mongo?database=test&collection=votes&operation=insert")
+            ;
+            from("direct:BallotBox")
+            	.to("bean:voteRepository?method=findAll()")
+            	.split(body())
+            	.to(BALLOTS_QUEUE)
+            	;
 
                //will be invoked by a timer route
             from(PUBLISH_CURRENT_PROJECTION_ENDPOINT)
