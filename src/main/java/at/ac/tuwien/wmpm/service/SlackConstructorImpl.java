@@ -13,7 +13,9 @@ public class SlackConstructorImpl implements SlackConstructor {
 		//the list 
 		long voteSum = data.stream().mapToLong(e -> ((Long)e.get("vote_count")).longValue())
 			.sum();
-		StringBuilder sb = new StringBuilder();
+		StringBuilder sb = new StringBuilder("Current Projection:\n");
+		if(voteSum == 0)
+			sb.append("Votes not counted yet. ");
 		for(Map<String, Object> entry : data) {
 			String candidate = (String) entry.get("candidate");
 			Long voteCount = (Long) entry.get("vote_count");

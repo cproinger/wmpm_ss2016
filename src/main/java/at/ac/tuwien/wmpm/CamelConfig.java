@@ -23,7 +23,7 @@ public class CamelConfig extends SingleRouteCamelConfiguration {
 
   public static final String SLACK_ENDPOINT = "{{routes.push_to_slack}}";
 
-  public static final String PUBLISH_CURRENT_PROJECTION_ENDPOINT = "direct:publish_current_projection";
+  public static final String PUBLISH_CURRENT_PROJECTION_ENDPOINT = "{{routes.publishCurrentProjection}}";
 
   public static final String REMOVE_PERSONAL_INFORMATION_ENDPOINT = "direct:remove_personal_information";
 
@@ -101,27 +101,21 @@ public class CamelConfig extends SingleRouteCamelConfiguration {
             	.split(body())
             	.to(BALLOTS_QUEUE)
             	;
+            
+            from(BALLOTS_QUEUE)
+            	.onException(IllegalVoteInfoException.class)
+            		.to(ILLEGAL_VOTE_INFO_ENDPOINT)
+            		.end()
+            	.to("bean:extractCandidateVoteService?method=extract(${body})")
+            	.to("bean:verifyCandidateVoteItemService?method=lookupCandidate(${body})")
+            	.to("mock:VoteExtracted");
+            
+            endResultCalculationProcess();
+            	
+		}
 
-               //will be invoked by a timer route
-            from(PUBLISH_CURRENT_PROJECTION_ENDPOINT)
-                    //TODO select data from the end-results table(s)
-                    .to("sql:select candidate, sum(vote_count) vote_count from polls group by candidate?dataSource=dataSource")
-                    // query return List<Map<String, Object>> type
-                    
-                    //TODO filter message if there are no results yet
-                    //.filter(body().isNotNull())
-
-                    .to("bean:slackConstructor?method=marshal(${body})")
-
-                    //TODO format a string be pushed to slack
-                    //(image maybe later, don't know if apache-camel-slack lets you do that)
-                    //.to(SLACK_ENDPOINT);
-                    .to("slack:#general");
-
-            from("direct:push_to_slack")
-                    .to("log:Slack?level=INFO");
-
-            // mail csv to database
+		private void endResultCalculationProcess() {
+			// mail csv to database
             from(POP3_URI)
                     .unmarshal().csv()
                     .split(body())
@@ -133,14 +127,21 @@ public class CamelConfig extends SingleRouteCamelConfiguration {
                     .to("jdbc:dataSource?useHeadersAsParameters=true")
                     .to(ROUTES_AFTER_CANDIDATE_INSERT_ENDPOINT);
             
-            from(BALLOTS_QUEUE)
-            	.onException(IllegalVoteInfoException.class)
-            		.to(ILLEGAL_VOTE_INFO_ENDPOINT)
-            		.end()
-            	.to("bean:extractCandidateVoteService?method=extract(${body})")
-            	.to("bean:verifyCandidateVoteItemService?method=lookupCandidate(${body})")
-            	.to("mock:VoteExtracted");
-            	
+			//will be invoked by a timer route
+            from(PUBLISH_CURRENT_PROJECTION_ENDPOINT)
+                    .to("sql:select candidate, sum(vote_count) vote_count from polls group by candidate?dataSource=dataSource")
+                    
+                    //TODO filter message if there are no results yet
+                    //.filter(body().isNotNull())
+
+                    //here we format a string be pushed to slack
+                    .to("bean:slackConstructor?method=marshal(${body})")
+
+                    //(image maybe later, don't know if apache-camel-slack lets you do that)
+                    .to(SLACK_ENDPOINT);
+
+            from("direct:push_to_slack")
+                    .to("slack:#general");
 		}
 	}
 }
