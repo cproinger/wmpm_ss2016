@@ -9,7 +9,6 @@ CREATE TABLE polls (
   vote_count INTEGER NOT NULL
 );
 
-
 CREATE TABLE candidate (
 	name VARCHAR(255) PRIMARY KEY
 );
