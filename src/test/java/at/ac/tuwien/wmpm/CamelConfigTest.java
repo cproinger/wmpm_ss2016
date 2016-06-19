@@ -67,7 +67,7 @@ import static org.junit.Assert.assertEquals;
 @ActiveProfiles({"test"
 	//this profiles makes you use a fake mongo-server
 	//if no real server is available
-	//, "fakeMongo" 
+	, "fakeMongo" 
 	})
 public class CamelConfigTest /* extends AbstractJUnit4SpringContextTests */ {
 
@@ -132,9 +132,11 @@ public class CamelConfigTest /* extends AbstractJUnit4SpringContextTests */ {
     protected MockEndpoint publishToSlackMock;
 
     @Test
-    @Ignore("fails for now")
+    //@Ignore("fails for now")
     public void testEndResultDataToPublishableString() throws InterruptedException {
-
+    	jdbcTemplate.execute("insert into polls(candidate, vote_count) values('Trump', 345)");
+    	jdbcTemplate.execute("insert into polls(candidate, vote_count) values('Hillary', 645)");
+		
 		/*
 		 * TODO Task 2. 
 		 * 		define a table in /wmpm/src/main/resources/sql/create-tables.sql
@@ -144,7 +146,7 @@ public class CamelConfigTest /* extends AbstractJUnit4SpringContextTests */ {
         Date now = new Date();
 //		MockEndpoint publishToSlackMock = getMockEndpoint("mock:direct:push_to_slack__mockable");
 //		
-        publishToSlackMock.expectedBodiesReceived(now.toString() + " someData");
+        publishToSlackMock.expectedBodiesReceived("Trump x%... ");
 
         publishCurrentProjectionRoute.sendBody(now);
 
