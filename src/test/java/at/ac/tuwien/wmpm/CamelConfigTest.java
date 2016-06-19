@@ -67,7 +67,7 @@ import static org.junit.Assert.assertEquals;
 @ActiveProfiles({"test"
 	//this profiles makes you use a fake mongo-server
 	//if no real server is available
-	//, "fakeMongo" 
+	, "fakeMongo" 
 	})
 public class CamelConfigTest /* extends AbstractJUnit4SpringContextTests */ {
 
