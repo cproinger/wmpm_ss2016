@@ -20,11 +20,9 @@ public class SlackConstructorImpl implements SlackConstructor {
 			double sumVote = ((((double)voteCount) / ((double)voteSum)) * 100) ;
 
 			sb.append(candidate).append(" ")
-				.append(((((double)voteCount) / ((double)voteSum)) * 100)) 
-				.append(" %")
-				.append(String.format("%.2f", sumVote))
-				
-				.append("\n");
+			.append(String.format("%.2f", sumVote))
+			.append(" % ")
+			.append("\n");
 		}
 		
 		//return ;
