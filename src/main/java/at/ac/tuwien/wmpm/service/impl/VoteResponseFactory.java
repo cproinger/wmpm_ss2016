@@ -22,6 +22,10 @@ public class VoteResponseFactory {
     return this.createVoteResponseFromType(ResponseType.OK);
   }
 
+  public JAXBElement<VoteResponse> createInvalidSchemaResponse() {
+    return this.createVoteResponseFromType(ResponseType.INVALID_SCHEMA);
+  }
+
   private JAXBElement<VoteResponse> createVoteResponseFromType(ResponseType type) {
 
     ObjectFactory factory = new ObjectFactory();

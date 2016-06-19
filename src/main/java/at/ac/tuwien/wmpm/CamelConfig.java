@@ -2,21 +2,15 @@ package at.ac.tuwien.wmpm;
 
 import at.ac.tuwien.wmpm.service.AlreadyVotedException;
 import at.ac.tuwien.wmpm.service.IllegalPersonInfoException;
+import at.ac.tuwien.wmpm.service.IllegalVoteInfoException;
 import at.ac.tuwien.wmpm.service.impl.VoteResponseFactory;
-import at.ac.tuwien.wmpm.ss2016.ResponseType;
 import at.ac.tuwien.wmpm.ss2016.VoteRequest;
-import at.ac.tuwien.wmpm.ss2016.VoteResponse;
-import org.apache.camel.Exchange;
-import org.apache.camel.Processor;
+import org.apache.camel.ValidationException;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.converter.jaxb.JaxbDataFormat;
-import org.apache.camel.component.spring.ws.bean.CamelEndpointMapping;
 import org.apache.camel.model.dataformat.JsonLibrary;
 import org.apache.camel.spring.javaconfig.SingleRouteCamelConfiguration;
-import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-
-import at.ac.tuwien.wmpm.service.IllegalVoteInfoException;
 
 @Configuration
 public class CamelConfig extends SingleRouteCamelConfiguration {
@@ -41,8 +35,6 @@ public class CamelConfig extends SingleRouteCamelConfiguration {
 
   public static final String ILLEGAL_VOTE_INFO_ENDPOINT = "mock:IllegalVoteInfoException";
 
-  public static final String SOAP_VOTE_RESPONSE_ENDPOINT = "direct:vote_response";
-
   //listen for all requests which have a VoteRequest root element in their body.
   public static final String VOTES_WEB_SERVICE_ENDPOINT = "spring-ws:rootqname:{http://tuwien.ac.at/wmpm/ss2016}VoteRequest?endpointMapping=#endpointMapping";
 
@@ -55,9 +47,8 @@ public class CamelConfig extends SingleRouteCamelConfiguration {
 
 
 		@Override
-        public void configure() throws Exception {
+    public void configure() throws Exception {
 //			samples();
-
 
       String schemaPath = "classpath:schema/votes.xsd";
 
@@ -66,27 +57,32 @@ public class CamelConfig extends SingleRouteCamelConfiguration {
 
       //setup web service endpoint route.
       from(VOTES_WEB_SERVICE_ENDPOINT)
-              .unmarshal(jaxb)
               .doTry()
-              .to("bean:voteRequestService?method=handleRequest(${body})")
-              .log("success")
-              //.to(REMOVE_PERSONAL_INFORMATION_ENDPOINT)
+                .to("validator:" + schemaPath)
+              .doCatch(ValidationException.class)
+                .bean(VoteResponseFactory.class, "createInvalidSchemaResponse")
+              .end()
+              .unmarshal(jaxb)
+              .to("bean:voteRequestService?method=transformRequest(${body})")
+              .doTry()
+                .split(simple("${body.getValidationObjectList()}"))
+                    .choice()
+                      .when(simple("${body.getType()} == 'PERSONAL_INFORMATION_ID'"))
+                        .to("bean:voteRequestService?method=validatePersonalId(${body.getValue()})")
+                      .otherwise()
+                        .to("bean:voteRequestService?method=validateVotingCardId(${body.getValue()})")
+                      .end()
+                .end()
+                .to("bean:voteRequestService?method=doVote(${body})")
+                .to(REMOVE_PERSONAL_INFORMATION_ENDPOINT)
+                .bean(VoteResponseFactory.class, "createValidResponse")
+              .endDoTry()
               .doCatch(IllegalPersonInfoException.class)
-              .bean(VoteResponseFactory.class, "createPersonErrorResponse")
-              .log("${body}")
-              .log("person error")
-              //.to(SOAP_VOTE_RESPONSE_ENDPOINT)
+                .bean(VoteResponseFactory.class, "createPersonErrorResponse")
               .doCatch(AlreadyVotedException.class)
-              .to("bean:voteResponseFactory?method=createAlreadyVotedResponse()")
-              .log("already voted")
-              //.to(SOAP_VOTE_RESPONSE_ENDPOINT)
+                .bean(VoteResponseFactory.class, "createAlreadyVotedResponse")
               .end()
               .marshal(jaxb);
-
-      //takes a vote response object.
-      from(SOAP_VOTE_RESPONSE_ENDPOINT)
-              .marshal(jaxb);
-			
 
             //this takes an Object
             from(REMOVE_PERSONAL_INFORMATION_ENDPOINT)
