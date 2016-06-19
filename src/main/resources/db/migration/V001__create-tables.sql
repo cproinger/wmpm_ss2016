@@ -14,11 +14,3 @@ CREATE TABLE polls (
 CREATE TABLE candidate (
 	name VARCHAR(255) PRIMARY KEY
 );
-
-
-CREATE TABLE resultDataToPublis (
-  id BIGINT IDENTITY,
-  product_name VARCHAR(255) NOT NULL,
-  candidate_name  VARCHAR(255) NOT NULL,
-  comment varchar(500)
-);
