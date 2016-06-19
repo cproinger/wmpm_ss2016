@@ -81,8 +81,8 @@ public class CamelConfigTest /* extends AbstractJUnit4SpringContextTests */ {
   private VoteRepository voteRepo;
 
 
-  @Produce(uri = "direct:BallotBox")
-  private ProducerTemplate ballotBox;
+  @Produce(uri = CamelConfig.OPEN_BALLOT_BOX)
+  private ProducerTemplate openBallotBox;
 
   @Test
 
@@ -98,7 +98,7 @@ public class CamelConfigTest /* extends AbstractJUnit4SpringContextTests */ {
     vi.getItem().add(i2);
     voteRepo.save(new Vote(vi));
 
-    ballotBox.sendBody("test");
+    openBallotBox.sendBody("test");
   }
 
   @Test

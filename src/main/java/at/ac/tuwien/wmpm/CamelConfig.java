@@ -37,6 +37,8 @@ public class CamelConfig extends SingleRouteCamelConfiguration {
 
   //listen for all requests which have a VoteRequest root element in their body.
   public static final String VOTES_WEB_SERVICE_ENDPOINT = "spring-ws:rootqname:{http://tuwien.ac.at/wmpm/ss2016}VoteRequest?endpointMapping=#endpointMapping";
+  
+  public static final String OPEN_BALLOT_BOX = "direct:OpenBallotBox";
 
   @Override
   public RouteBuilder route() {
@@ -44,7 +46,6 @@ public class CamelConfig extends SingleRouteCamelConfiguration {
   }
 
   private class MyRouterBuilder extends RouteBuilder {
-
 
 		@Override
     public void configure() throws Exception {
@@ -90,7 +91,12 @@ public class CamelConfig extends SingleRouteCamelConfiguration {
             	.to("jolt:stripAllButVoteInfo.json?inputType=JsonString&outputType=JsonString")
                 .to("mongodb:mongo?database=test&collection=votes&operation=insert")
             ;
-            from("direct:BallotBox")
+            
+            from("{{routes.closeBallot}}")
+            	.to("bean:ballot?method=close()")
+            	.to(OPEN_BALLOT_BOX);
+            
+            from(OPEN_BALLOT_BOX)
             	.to("bean:voteRepository?method=findAll()")
             	.split(body())
             	.to(BALLOTS_QUEUE)
@@ -135,43 +141,6 @@ public class CamelConfig extends SingleRouteCamelConfiguration {
             	.to("bean:verifyCandidateVoteItemService?method=lookupCandidate(${body})")
             	.to("mock:VoteExtracted");
             	
-        }
-
-
-        private void samples() {
-//			Predicate isQuit = body().isEqualTo("quit");
-      from("stream:in?promptMessage=Enter something: ")
-//				.transform().simple("ref:myBean")
-              .setHeader("header1").constant("test")
-//				.choice().when(isQuit).to("jms:queue:shutdown")
-//				.otherwise()
-              .to("jms:queue:simple");
-
-      from("jms:queue:simple")
-              .to("log:simpleMessages?showHeaders=true");
-
-      //http://camel.apache.org/spring-web-services.html
-      JaxbDataFormat jaxb = new JaxbDataFormat();
-      jaxb.setContextPath("io.spring.guides.gs_producing_web_service");
-
-      //spring-ws web-service ruft ein repository auf und liefert
-      //das ergebnis zurück
-      from("spring-ws:rootqname:"
-              + "{http://spring.io/guides/gs-producing-web-service}"
-              + "getCountryRequest?endpointMapping=#endpointMapping")
-              .wireTap("direct:log").end()
-              .unmarshal(jaxb)
-              .transform().simple("body.name")
-              //.bean(SampleCountryRepository.class, "findCountry")
-              .transform().spel("#{@responseFactory.createCountryResponse(body)}")
-              .marshal(jaxb)
-              .wireTap("direct:log").end()
-              .transform(body())
-      ;
-
-      from("direct:log")
-              .convertBodyTo(String.class)
-              .to("log:Camel?level=INFO");
-    }
-  }
+		}
+	}
 }
