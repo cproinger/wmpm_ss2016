@@ -135,8 +135,8 @@ public class CamelConfigTest /* extends AbstractJUnit4SpringContextTests */ {
   @Test
   //@Ignore("fails for now")
   public void testEndResultDataToPublishableString() throws InterruptedException {
-  	jdbcTemplate.execute("insert into polls(candidate, vote_count) values('John', 497)");
-  	jdbcTemplate.execute("insert into polls(candidate, vote_count) values('Tom', 521)");
+  	jdbcTemplate.execute("insert into polls(candidate, vote_count) values('Aarenson', 497)");
+  	jdbcTemplate.execute("insert into polls(candidate, vote_count) values('Ali', 521)");
 
 		/*
 		 * Task 2. 
@@ -147,7 +147,7 @@ public class CamelConfigTest /* extends AbstractJUnit4SpringContextTests */ {
       Date now = new Date();
 //		MockEndpoint publishToSlackMock = getMockEndpoint("mock:direct:push_to_slack__mockable");
 //		
-      publishToSlackMock.expectedBodyReceived().body().contains("John 48,82 %\nTom 51,18 %\n");
+      publishToSlackMock.expectedBodyReceived().body().contains("Aarenson 48,82 %\nAli 51,18 %\n");
 
       publishCurrentProjectionRoute.sendBody(now);
 
