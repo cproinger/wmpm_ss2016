@@ -53,32 +53,32 @@ public class CamelConfig extends SingleRouteCamelConfiguration {
 			
 
             //this takes an Object
-            from(REMOVE_PERSONAL_INFORMATION_ENDPOINT)
-            	.marshal().json(JsonLibrary.Jackson)
-            	.to("jolt:stripAllButVoteInfo.json?inputType=JsonString&outputType=JsonString")
-                .to("mongodb:mongo?database=test&collection=votes&operation=insert")
-            ;
-            from("direct:BallotBox")
-            	.to("bean:voteRepository?method=findAll()")
-            	.split(body())
-            	//.to("log:BALLOTBOX?level=INFO")
-            	.to(BALLOTS_QUEUE)
-            	;
+//            from(REMOVE_PERSONAL_INFORMATION_ENDPOINT)
+//            	.marshal().json(JsonLibrary.Jackson)
+//            	.to("jolt:stripAllButVoteInfo.json?inputType=JsonString&outputType=JsonString")
+//                .to("mongodb:mongo?database=test&collection=votes&operation=insert")
+//            ;
+//            from("direct:BallotBox")
+//            	.to("bean:voteRepository?method=findAll()")
+//            	.split(body())
+//            	.to(BALLOTS_QUEUE)
+//            	;
 
                //will be invoked by a timer route
             from(PUBLISH_CURRENT_PROJECTION_ENDPOINT)
                     //TODO select data from the end-results table(s)
-                    .to("sql:select * from resultDataToPublish?dataSource=dataSource")
+                    .to("sql:select candidate, sum(vote_count) vote_count from polls group by candidate?dataSource=dataSource")
                     // query return List<Map<String, Object>> type
                     
                     //TODO filter message if there are no results yet
                     //.filter(body().isNotNull())
 
-                    .to("bean:slackComposer?method=marshal(${body})")
+                    .to("bean:slackConstructor?method=marshal(${body})")
 
                     //TODO format a string be pushed to slack
                     //(image maybe later, don't know if apache-camel-slack lets you do that)
                     .to(SLACK_ENDPOINT);
+                    //.to("direct:push_to_slack");
 
             from("direct:push_to_slack")
                     .to("log:Slack?level=INFO");
