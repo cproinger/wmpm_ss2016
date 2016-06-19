@@ -96,7 +96,14 @@ public class CamelConfig extends SingleRouteCamelConfiguration {
                 .to("mongodb:mongo?database=test&collection=votes&operation=insert")
             ;
             
-            from("{{routes.closeBallot}}")
+            countingProcess();
+            
+            endResultCalculationProcess();
+            	
+		}
+
+		private void countingProcess() {
+			from("{{routes.closeBallot}}")
             	.to("bean:ballot?method=close()")
             	.to(OPEN_BALLOT_BOX);
             
@@ -113,9 +120,6 @@ public class CamelConfig extends SingleRouteCamelConfiguration {
             	.to("bean:extractCandidateVoteService?method=extract(${body})")
             	.to("bean:verifyCandidateVoteItemService?method=lookupCandidate(${body})")
             	.to("mock:VoteExtracted");
-            
-            endResultCalculationProcess();
-            	
 		}
 
 		private void endResultCalculationProcess() {
