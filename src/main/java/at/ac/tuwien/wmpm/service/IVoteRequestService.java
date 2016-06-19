@@ -6,6 +6,12 @@ import at.ac.tuwien.wmpm.ss2016.VoteRequest;
 public interface IVoteRequestService {
 
   /**
+   * Checks if the ballot is still open.
+   * @throws BallotClosedException if ballot is already closed.
+   */
+  void checkIfBallotIsOpen() throws BallotClosedException;
+
+  /**
    *
    * @param voteRequest, the vote request, for which to handleRequest personal info.
    * @throws IllegalPersonInfoException if voting card info or personal id are wrong.

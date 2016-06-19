@@ -26,6 +26,10 @@ public class VoteResponseFactory {
     return this.createVoteResponseFromType(ResponseType.INVALID_SCHEMA);
   }
 
+  public JAXBElement<VoteResponse> createBallotClosedResponse() {
+    return this.createVoteResponseFromType(ResponseType.VOTING_TIME_EXCEEDED);
+  }
+
   private JAXBElement<VoteResponse> createVoteResponseFromType(ResponseType type) {
 
     ObjectFactory factory = new ObjectFactory();

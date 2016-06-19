@@ -5,12 +5,12 @@ import at.ac.tuwien.wmpm.domain.VotingCard;
 import at.ac.tuwien.wmpm.helper.TransformedRequest;
 import at.ac.tuwien.wmpm.helper.ValidationObject;
 import at.ac.tuwien.wmpm.helper.ValidationType;
-import at.ac.tuwien.wmpm.service.AlreadyVotedException;
-import at.ac.tuwien.wmpm.service.IVoteRequestService;
-import at.ac.tuwien.wmpm.service.IllegalPersonInfoException;
+import at.ac.tuwien.wmpm.service.*;
 import at.ac.tuwien.wmpm.ss2016.VoteRequest;
+import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.stereotype.Service;
 
+import javax.annotation.Resource;
 import javax.persistence.EntityManager;
 import javax.persistence.NoResultException;
 import javax.persistence.PersistenceContext;
@@ -24,6 +24,17 @@ public class VoteRequestService implements IVoteRequestService {
 
   @PersistenceContext
   private EntityManager entityManager;
+
+  @Resource
+  @Qualifier("ballot")
+  private Ballot ballot;
+
+  @Override
+  public void checkIfBallotIsOpen() throws BallotClosedException {
+    if(!ballot.isOpen()) {
+      throw new BallotClosedException();
+    }
+  }
 
   @Override
   public VoteRequest doVote(TransformedRequest voteRequest) throws IllegalPersonInfoException, AlreadyVotedException {

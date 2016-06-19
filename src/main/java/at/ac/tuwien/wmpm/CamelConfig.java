@@ -1,6 +1,7 @@
 package at.ac.tuwien.wmpm;
 
 import at.ac.tuwien.wmpm.service.AlreadyVotedException;
+import at.ac.tuwien.wmpm.service.BallotClosedException;
 import at.ac.tuwien.wmpm.service.IllegalPersonInfoException;
 import at.ac.tuwien.wmpm.service.IllegalVoteInfoException;
 import at.ac.tuwien.wmpm.service.impl.VoteResponseFactory;
@@ -64,24 +65,27 @@ public class CamelConfig extends SingleRouteCamelConfiguration {
                 .bean(VoteResponseFactory.class, "createInvalidSchemaResponse")
               .end()
               .unmarshal(jaxb)
-              .to("bean:voteRequestService?method=transformRequest(${body})")
               .doTry()
-                .split(simple("${body.getValidationObjectList()}"))
-                    .choice()
-                      .when(simple("${body.getType()} == 'PERSONAL_INFORMATION_ID'"))
-                        .to("bean:voteRequestService?method=validatePersonalId(${body.getValue()})")
-                      .otherwise()
-                        .to("bean:voteRequestService?method=validateVotingCardId(${body.getValue()})")
-                      .end()
-                .end()
+                .to("bean:voteRequestService?method=checkIfBallotIsOpen()")
+                .to("bean:voteRequestService?method=transformRequest(${body})")
+                  .split(simple("${body.getValidationObjectList()}"))
+                      .choice()
+                        .when(simple("${body.getType()} == 'PERSONAL_INFORMATION_ID'"))
+                          .to("bean:voteRequestService?method=validatePersonalId(${body.getValue()})")
+                        .otherwise()
+                          .to("bean:voteRequestService?method=validateVotingCardId(${body.getValue()})")
+                        .end()
+                  .end()
                 .to("bean:voteRequestService?method=doVote(${body})")
-                .to(REMOVE_PERSONAL_INFORMATION_ENDPOINT)
+                //.to(REMOVE_PERSONAL_INFORMATION_ENDPOINT)
                 .bean(VoteResponseFactory.class, "createValidResponse")
               .endDoTry()
               .doCatch(IllegalPersonInfoException.class)
                 .bean(VoteResponseFactory.class, "createPersonErrorResponse")
               .doCatch(AlreadyVotedException.class)
                 .bean(VoteResponseFactory.class, "createAlreadyVotedResponse")
+              .doCatch(BallotClosedException.class)
+                .bean(VoteResponseFactory.class, "createBallotClosedResponse")
               .end()
               .marshal(jaxb);
 
