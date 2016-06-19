@@ -12,6 +12,7 @@ apply plugin: 'java'
 apply plugin: 'eclipse'
 apply plugin: 'spring-boot'
 apply plugin: 'application'
+buildDir = 'build2'
 
 repositories {
     mavenCentral()
@@ -21,8 +22,8 @@ repositories {
 //hm. eigentlich brauch ich das nicht weil ich die klassen ja gar nicht
 //verwenden will, sondern nur die WSDL-definition-klasse. 
 task genJaxb {
-    ext.sourcesDir = "build/generated-sources/jaxb"
-    ext.classesDir = "build/classes/jaxb"
+    ext.sourcesDir = "build2/generated-sources/jaxb"
+    ext.classesDir = "build2/classes/jaxb"
     ext.schema = "src/main/resources/schema/votes.xsd"
 
     outputs.dir classesDir
@@ -148,7 +149,7 @@ task afterEclipseImport {
 	doLast {
 	    compileJava.execute()
 	    def classpath = new XmlParser().parse(file(".classpath"))
-	    new Node(classpath, "classpathentry", [kind: 'src', path: 'build/generated-sources/jaxb']);
+	    new Node(classpath, "classpathentry", [kind: 'src', path: 'build2/generated-sources/jaxb']);
 	    def writer = new FileWriter(file(".classpath"))
 	    def printer = new XmlNodePrinter(new PrintWriter(writer))
 	    printer.setPreserveWhitespace(true)
