@@ -115,8 +115,8 @@ public class CamelConfig extends SingleRouteCamelConfiguration {
 
                     //TODO format a string be pushed to slack
                     //(image maybe later, don't know if apache-camel-slack lets you do that)
-                    .to(SLACK_ENDPOINT);
-                    //.to("direct:push_to_slack");
+                    //.to(SLACK_ENDPOINT);
+                    .to("slack:#general");
 
             from("direct:push_to_slack")
                     .to("log:Slack?level=INFO");
