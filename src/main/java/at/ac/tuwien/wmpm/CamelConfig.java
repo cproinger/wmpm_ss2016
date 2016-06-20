@@ -11,6 +11,7 @@ import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.converter.jaxb.JaxbDataFormat;
 import org.apache.camel.model.dataformat.JsonLibrary;
 import org.apache.camel.spring.javaconfig.SingleRouteCamelConfiguration;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
@@ -38,7 +39,7 @@ public class CamelConfig extends SingleRouteCamelConfiguration {
 
   //listen for all requests which have a VoteRequest root element in their body.
   public static final String VOTES_WEB_SERVICE_ENDPOINT = "spring-ws:rootqname:{http://tuwien.ac.at/wmpm/ss2016}VoteRequest?endpointMapping=#endpointMapping";
-  
+
   public static final String OPEN_BALLOT_BOX = "direct:OpenBallotBox";
 
   @Override
@@ -95,24 +96,24 @@ public class CamelConfig extends SingleRouteCamelConfiguration {
             	.to("jolt:stripAllButVoteInfo.json?inputType=JsonString&outputType=JsonString")
                 .to("mongodb:mongo?database=test&collection=votes&operation=insert")
             ;
-            
+
             countingProcess();
-            
+
             endResultCalculationProcess();
-            	
+
 		}
 
 		private void countingProcess() {
 			from("{{routes.closeBallot}}")
             	.to("bean:ballot?method=close()")
             	.to(OPEN_BALLOT_BOX);
-            
+
             from(OPEN_BALLOT_BOX)
             	.to("bean:voteRepository?method=findAll()")
             	.split(body())
             	.to(BALLOTS_QUEUE)
             	;
-            
+
             from(BALLOTS_QUEUE)
             	.onException(IllegalVoteInfoException.class)
             		.to(ILLEGAL_VOTE_INFO_ENDPOINT)
@@ -126,19 +127,22 @@ public class CamelConfig extends SingleRouteCamelConfiguration {
 			// mail csv to database
             from(POP3_URI)
                     .unmarshal().csv()
+                    .setHeader("candidates", simple("${body.size()}"))
                     .split(body())
+                        .setHeader("candidate", simple("${body.get(0)}"))
+                        .setHeader("vote_count", simple("${body.get(1)}"))
+                        .setBody(simple("insert into polls(candidate, vote_count) values (:?candidate, :?vote_count);"))
 
-                    .setHeader("candidate", simple("${body.get(0)}"))
-                    .setHeader("vote_count", simple("${body.get(1)}"))
-                    .setBody(simple("insert into polls(candidate, vote_count) values (:?candidate, :?vote_count);"))
-
-                    .to("jdbc:dataSource?useHeadersAsParameters=true")
+                        .to("jdbc:dataSource?useHeadersAsParameters=true")
+                    .end()
+                    .setBody(simple("Inserted ${header.candidates} votes from {{mail.user}}"))
+                    .to("stream:out")
                     .to(ROUTES_AFTER_CANDIDATE_INSERT_ENDPOINT);
-            
+
 			//will be invoked by a timer route
             from(PUBLISH_CURRENT_PROJECTION_ENDPOINT)
                     .to("sql:select candidate, sum(vote_count) vote_count from polls group by candidate?dataSource=dataSource")
-                    
+
                     //TODO filter message if there are no results yet
                     //.filter(body().isNotNull())
 
