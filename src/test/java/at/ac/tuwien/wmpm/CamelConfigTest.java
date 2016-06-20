@@ -164,7 +164,7 @@ public class CamelConfigTest /* extends AbstractJUnit4SpringContextTests */ {
   @Test
   public void testFromMailWithCSV_toEndResultTables() throws MessagingException, InterruptedException {
     GreenMailUtil.sendTextEmailTest("to@localhost.com", "from@localhost.com", "subject",
-            "Trump,10\nLugner,13"
+            "ballot-box-1\nTrump,10\nLugner,13"
     );
 
     afterCandidateInsert.expectedMinimumMessageCount(1);
@@ -173,6 +173,8 @@ public class CamelConfigTest /* extends AbstractJUnit4SpringContextTests */ {
 
     assertEquals(10, (long) jdbcTemplate.queryForObject("select vote_count from polls where candidate = 'Trump'", Long.class));
     assertEquals(13, (long) jdbcTemplate.queryForObject("select vote_count from polls where candidate = 'Lugner'", Long.class));
+    assertEquals("ballot-box-1", jdbcTemplate.queryForObject("select ballot_box_id from polls where candidate = 'Trump'", String.class));
+    assertEquals("ballot-box-1", jdbcTemplate.queryForObject("select ballot_box_id from polls where candidate = 'Lugner'", String.class));
   }
 
   @Inject

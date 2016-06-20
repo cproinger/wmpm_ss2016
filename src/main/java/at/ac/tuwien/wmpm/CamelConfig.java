@@ -1,11 +1,15 @@
 package at.ac.tuwien.wmpm;
 
+import at.ac.tuwien.wmpm.helper.ExtractBallotMessageProcessor;
 import at.ac.tuwien.wmpm.service.AlreadyVotedException;
 import at.ac.tuwien.wmpm.service.BallotClosedException;
 import at.ac.tuwien.wmpm.service.IllegalPersonInfoException;
 import at.ac.tuwien.wmpm.service.IllegalVoteInfoException;
 import at.ac.tuwien.wmpm.service.impl.VoteResponseFactory;
 import at.ac.tuwien.wmpm.ss2016.VoteRequest;
+import org.apache.camel.Exchange;
+import org.apache.camel.Pattern;
+import org.apache.camel.Processor;
 import org.apache.camel.ValidationException;
 import org.apache.camel.builder.RouteBuilder;
 import org.apache.camel.converter.jaxb.JaxbDataFormat;
@@ -23,7 +27,13 @@ public class CamelConfig extends SingleRouteCamelConfiguration {
   //through that test-cases (using @ActiveProfiles("test"))
   //can replace them with mocks.
 
+  public static final String JDBC_QUERY = "jdbc:dataSource?useHeadersAsParameters=true";
+
   public static final String SLACK_ENDPOINT = "{{routes.push_to_slack}}";
+
+  public static final String SEND_BALLOT_BOX_RESULT = "{{routes.sendBallotBoxResult}}";
+
+  public static final String SEND_BALLOT_BOX_RESULT_MAIL_ROUTE = "mock:SEND_BALLOT_BOX_RESULT_MAIL_ROUTE";
 
   public static final String PUBLISH_CURRENT_PROJECTION_ENDPOINT = "{{routes.publishCurrentProjection}}";
 
@@ -124,18 +134,35 @@ public class CamelConfig extends SingleRouteCamelConfiguration {
 		}
 
 		private void endResultCalculationProcess() {
-			// mail csv to database
+            // ballot box result to mail
+            from(SEND_BALLOT_BOX_RESULT)
+                    .to("sql:select candidate, sum(vote_count) vote_count from polls group by candidate?dataSource=dataSource")
+                    .marshal().csv()
+                    .setBody(body().prepend(simple("${bean:ballotBoxIdentifierService?method=getUniqueBallotBoxId}\n")))
+                    .to("stream:out")
+                    .to(SEND_BALLOT_BOX_RESULT_MAIL_ROUTE);
+
+            // mail csv to database
             from(POP3_URI)
+                    .process(new ExtractBallotMessageProcessor())
                     .unmarshal().csv()
                     .setHeader("candidates", simple("${body.size()}"))
+                    .setHeader("message", body())
+
+                    // delete old votes
+                    .setBody(simple("delete from polls where ballot_box_id = :?ballot_box_id"))
+                    .to(JDBC_QUERY)
+
+                    .setBody(header("message"))
+
                     .split(body())
                         .setHeader("candidate", simple("${body.get(0)}"))
                         .setHeader("vote_count", simple("${body.get(1)}"))
-                        .setBody(simple("insert into polls(candidate, vote_count) values (:?candidate, :?vote_count);"))
+                        .setBody(simple("insert into polls(candidate, vote_count, ballot_box_id) values (:?candidate, :?vote_count, :?ballot_box_id);"))
 
-                        .to("jdbc:dataSource?useHeadersAsParameters=true")
+                        .to(JDBC_QUERY)
                     .end()
-                    .setBody(simple("Inserted ${header.candidates} votes from {{mail.user}}"))
+                    .setBody(simple("Inserted ${header.candidates} votes from ballot box ${header.ballot_box_id} via {{mail.user}}"))
                     .to("stream:out")
                     .to(ROUTES_AFTER_CANDIDATE_INSERT_ENDPOINT);
 

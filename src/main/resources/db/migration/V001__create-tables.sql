@@ -1,7 +1,8 @@
 CREATE TABLE polls (
   id BIGINT IDENTITY,
   candidate  VARCHAR(255) NOT NULL,
-  vote_count INTEGER NOT NULL
+  vote_count INTEGER NOT NULL,
+  ballot_box_id VARCHAR(255) DEFAULT NULL
 );
 
 CREATE TABLE candidate (
