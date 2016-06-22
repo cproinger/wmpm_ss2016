@@ -1,5 +1,13 @@
 package at.ac.tuwien.wmpm;
 
+import org.apache.camel.ValidationException;
+import org.apache.camel.builder.RouteBuilder;
+import org.apache.camel.converter.jaxb.JaxbDataFormat;
+import org.apache.camel.model.dataformat.JsonLibrary;
+import org.apache.camel.processor.aggregate.UseLatestAggregationStrategy;
+import org.apache.camel.spring.javaconfig.SingleRouteCamelConfiguration;
+import org.springframework.context.annotation.Configuration;
+
 import at.ac.tuwien.wmpm.helper.ExtractBallotMessageProcessor;
 import at.ac.tuwien.wmpm.service.AlreadyVotedException;
 import at.ac.tuwien.wmpm.service.BallotClosedException;
@@ -7,16 +15,6 @@ import at.ac.tuwien.wmpm.service.IllegalPersonInfoException;
 import at.ac.tuwien.wmpm.service.IllegalVoteInfoException;
 import at.ac.tuwien.wmpm.service.impl.VoteResponseFactory;
 import at.ac.tuwien.wmpm.ss2016.VoteRequest;
-import org.apache.camel.Exchange;
-import org.apache.camel.Pattern;
-import org.apache.camel.Processor;
-import org.apache.camel.ValidationException;
-import org.apache.camel.builder.RouteBuilder;
-import org.apache.camel.converter.jaxb.JaxbDataFormat;
-import org.apache.camel.model.dataformat.JsonLibrary;
-import org.apache.camel.spring.javaconfig.SingleRouteCamelConfiguration;
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class CamelConfig extends SingleRouteCamelConfiguration {
@@ -31,7 +29,7 @@ public class CamelConfig extends SingleRouteCamelConfiguration {
 
   public static final String SLACK_ENDPOINT = "{{routes.push_to_slack}}";
 
-  public static final String SEND_BALLOT_BOX_RESULT = "{{routes.sendBallotBoxResult}}";
+  public static final String SEND_BALLOT_BOX_RESULT = "direct:sendMail";//"{{routes.sendBallotBoxResult}}";
 
   public static final String SEND_BALLOT_BOX_RESULT_MAIL_ROUTE = "mock:SEND_BALLOT_BOX_RESULT_MAIL_ROUTE";
 
@@ -51,6 +49,9 @@ public class CamelConfig extends SingleRouteCamelConfiguration {
   public static final String VOTES_WEB_SERVICE_ENDPOINT = "spring-ws:rootqname:{http://tuwien.ac.at/wmpm/ss2016}VoteRequest?endpointMapping=#endpointMapping";
 
   public static final String OPEN_BALLOT_BOX = "direct:OpenBallotBox";
+  
+  public static final String INCREASE_VOTECOUNT_ENDPOINT = "{{routes.increaseVotecount}}";
+  
 
   @Override
   public RouteBuilder route() {
@@ -58,6 +59,7 @@ public class CamelConfig extends SingleRouteCamelConfiguration {
   }
 
   private class MyRouterBuilder extends RouteBuilder {
+
 
 		@Override
     public void configure() throws Exception {
@@ -130,17 +132,27 @@ public class CamelConfig extends SingleRouteCamelConfiguration {
             		.end()
             	.to("bean:extractCandidateVoteService?method=extract(${body})")
             	.to("bean:verifyCandidateVoteItemService?method=lookupCandidate(${body})")
-            	.to("mock:VoteExtracted");
+            	.to(INCREASE_VOTECOUNT_ENDPOINT)
+            	;
+            
+            from("direct:IncreaseVotecount")
+            	.to("sql:update candidate set vote_count = vote_count + 1 where name = ${body.name}?dataSource=dataSource")
+            	.aggregate(new UseLatestAggregationStrategy()).inMessage()
+            	.completionSize(100)
+            	.completionTimeout(5000)
+            	.to(SEND_BALLOT_BOX_RESULT)
+            	;
+            
+            // ballot box result to mail
+            from(SEND_BALLOT_BOX_RESULT)
+	            .to("sql:select name, vote_count from candidate?dataSource=dataSource")
+	            .marshal().csv()
+	            .setBody(body().prepend(simple("${bean:ballotBoxIdentifierService?method=getUniqueBallotBoxId}\n")))
+	            .to("stream:out")
+	            .to(SEND_BALLOT_BOX_RESULT_MAIL_ROUTE);
 		}
 
 		private void endResultCalculationProcess() {
-            // ballot box result to mail
-            from(SEND_BALLOT_BOX_RESULT)
-                    .to("sql:select candidate, sum(vote_count) vote_count from polls group by candidate?dataSource=dataSource")
-                    .marshal().csv()
-                    .setBody(body().prepend(simple("${bean:ballotBoxIdentifierService?method=getUniqueBallotBoxId}\n")))
-                    .to("stream:out")
-                    .to(SEND_BALLOT_BOX_RESULT_MAIL_ROUTE);
 
             // mail csv to database
             from(POP3_URI)

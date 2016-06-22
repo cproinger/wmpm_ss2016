@@ -184,7 +184,7 @@ public class CamelConfigTest /* extends AbstractJUnit4SpringContextTests */ {
   @Produce(uri = CamelConfig.BALLOTS_QUEUE)
   private ProducerTemplate ballotsQueueProducer;
 
-  @EndpointInject(uri = "mock:VoteExtracted")
+  @EndpointInject(uri = CamelConfig.INCREASE_VOTECOUNT_ENDPOINT)
   protected MockEndpoint voteExtractedMock;
 
   @Test

@@ -6,7 +6,8 @@ CREATE TABLE polls (
 );
 
 CREATE TABLE candidate (
-	name VARCHAR(255) PRIMARY KEY
+	name VARCHAR(255) PRIMARY KEY,
+	vote_count INTEGER NOT NULL DEFAULT 0
 );
 
 CREATE TABLE voting_card (
