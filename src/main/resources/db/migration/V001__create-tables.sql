@@ -28,3 +28,7 @@ CREATE TABLE resultDataToPublis (
   candidate_name  VARCHAR(255) NOT NULL,
   comment varchar(500)
 );
+
+CREATE TABLE NUMBERS (
+	n INTEGER PRIMARY KEY
+);
