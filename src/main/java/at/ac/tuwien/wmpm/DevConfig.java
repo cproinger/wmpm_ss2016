@@ -21,6 +21,7 @@ public class DevConfig {
 	public GreenMail greenmail() {
 		GreenMail greenMail = new GreenMail(ServerSetupTest.ALL);
 		greenMail.setUser("to@localhost.com", "to@localhost.com");
+		greenMail.setUser("pollingStation@localhost.com", "pollingStation@localhost.com");
 		return greenMail;
 	}
 }

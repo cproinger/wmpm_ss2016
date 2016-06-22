@@ -1,0 +1,17 @@
+<soapenv:Envelope xmlns:soapenv="http://schemas.xmlsoap.org/soap/envelope/" xmlns:ss2="http://tuwien.ac.at/wmpm/ss2016">
+    <soapenv:Header/>
+    <soapenv:Body>
+        <ss2:VoteRequest>
+            <ss2:personInfo>
+                <ss2:votingCard>${__counter(FALSE,counterVar)}</ss2:votingCard>
+                <ss2:personalIdentificationDoc>${__counter(FALSE,counterVar)}</ss2:personalIdentificationDoc>
+            </ss2:personInfo>
+            <ss2:voteInfo>
+                <!--Zero or more repetitions:-->
+                <ss2:item candiate="Trump" mark="x"  />
+                <ss2:item candiate="Lugner" mark=""   />
+                <ss2:item candiate="Clinton" mark="" />
+            </ss2:voteInfo>
+        </ss2:VoteRequest>
+    </soapenv:Body>
+</soapenv:Envelope>

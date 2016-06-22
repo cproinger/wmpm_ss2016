@@ -32,7 +32,7 @@ public class CamelConfig extends SingleRouteCamelConfiguration {
 
 	public static final String SEND_BALLOT_BOX_RESULT = "direct:sendMail";// "{{routes.sendBallotBoxResult}}";
 
-	public static final String SEND_BALLOT_BOX_RESULT_MAIL_ROUTE = "mock:SEND_BALLOT_BOX_RESULT_MAIL_ROUTE";
+	public static final String SEND_BALLOT_BOX_RESULT_MAIL_ROUTE = "{{routes.pollingStationMailPush}}";
 
 	public static final String PUBLISH_CURRENT_PROJECTION_ENDPOINT = "{{routes.publishCurrentProjection}}";
 
@@ -153,7 +153,8 @@ public class CamelConfig extends SingleRouteCamelConfiguration {
 				.to("sql:select name, vote_count from candidate?dataSource=dataSource")
 				.marshal().csv()
 				.setBody(body().prepend(simple("${bean:ballotBoxIdentifierService?method=getUniqueBallotBoxId}\n")))
-				.to("stream:out").to(SEND_BALLOT_BOX_RESULT_MAIL_ROUTE);
+				.to("stream:out")
+				.to(SEND_BALLOT_BOX_RESULT_MAIL_ROUTE);
 		}
 
 		private void endResultCalculationProcess() {
