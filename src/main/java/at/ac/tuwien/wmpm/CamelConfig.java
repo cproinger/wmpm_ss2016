@@ -83,83 +83,109 @@ public class CamelConfig extends SingleRouteCamelConfiguration {
 			JaxbDataFormat jaxb = new JaxbDataFormat(VoteRequest.class.getPackage().getName());
 
 			// setup web service endpoint route.
-			from(VOTES_WEB_SERVICE_ENDPOINT).doTry().to("validator:" + schemaPath).doCatch(ValidationException.class)
-					.bean(VoteResponseFactory.class, "createInvalidSchemaResponse").end().unmarshal(jaxb).doTry()
+			from(VOTES_WEB_SERVICE_ENDPOINT)
+				.doTry()
+					.to("validator:" + schemaPath)
+				.doCatch(ValidationException.class)
+					.bean(VoteResponseFactory.class, "createInvalidSchemaResponse")
+				.end()
+				.unmarshal(jaxb)
+				.doTry()
 					.to("bean:voteRequestService?method=checkIfBallotIsOpen()")
 					.to("bean:voteRequestService?method=transformRequest(${body})")
-					.split(simple("${body.getValidationObjectList()}")).choice()
-					.when(simple("${body.getType()} == 'PERSONAL_INFORMATION_ID'"))
-					.to("bean:voteRequestService?method=validatePersonalId(${body.getValue()})").otherwise()
-					.to("bean:voteRequestService?method=validateVotingCardId(${body.getValue()})").end().end()
+					.split(simple("${body.getValidationObjectList()}"))
+					.choice()
+						.when(simple("${body.getType()} == 'PERSONAL_INFORMATION_ID'"))
+							.to("bean:voteRequestService?method=validatePersonalId(${body.getValue()})")
+						.otherwise()
+							.to("bean:voteRequestService?method=validateVotingCardId(${body.getValue()})")
+							.end()
+					.end()
 					.to("bean:voteRequestService?method=doVote(${body})")
-					// .to(REMOVE_PERSONAL_INFORMATION_ENDPOINT)
-					.bean(VoteResponseFactory.class, "createValidResponse").endDoTry()
-					.doCatch(IllegalPersonInfoException.class)
-					.bean(VoteResponseFactory.class, "createPersonErrorResponse").doCatch(AlreadyVotedException.class)
-					.bean(VoteResponseFactory.class, "createAlreadyVotedResponse").doCatch(BallotClosedException.class)
-					.bean(VoteResponseFactory.class, "createBallotClosedResponse").end().marshal(jaxb);
+					.bean(VoteResponseFactory.class, "createValidResponse")
+				.endDoTry()
+				.doCatch(IllegalPersonInfoException.class)
+					.bean(VoteResponseFactory.class, "createPersonErrorResponse")
+				.doCatch(AlreadyVotedException.class)
+					.bean(VoteResponseFactory.class, "createAlreadyVotedResponse")
+				.doCatch(BallotClosedException.class)
+					.bean(VoteResponseFactory.class, "createBallotClosedResponse")
+				.end()
+				.marshal(jaxb);
 
 			// this takes an Object
 			from(REMOVE_PERSONAL_INFORMATION_ENDPOINT).marshal().json(JsonLibrary.Jackson)
-					.to("jolt:stripAllButVoteInfo.json?inputType=JsonString&outputType=JsonString")
-					.to("mongodb:mongo?database=test&collection=votes&operation=insert");
+				.to("jolt:stripAllButVoteInfo.json?inputType=JsonString&outputType=JsonString")
+				.to("mongodb:mongo?database=test&collection=votes&operation=insert");
 		}
 
 		private void countingProcess() {
-			from("{{routes.closeBallot}}").to("bean:ballot?method=close()").to(OPEN_BALLOT_BOX);
+			from("{{routes.closeBallot}}")
+				.to("bean:ballot?method=close()")
+				.to(OPEN_BALLOT_BOX);
 
-			from(OPEN_BALLOT_BOX).to("bean:voteRepository?method=findAll()").split(body()).to(BALLOTS_QUEUE);
+			from(OPEN_BALLOT_BOX)
+				.to("bean:voteRepository?method=findAll()")
+				.split(body())
+				.to(BALLOTS_QUEUE);
 
-			from(BALLOTS_QUEUE).onException(IllegalVoteInfoException.class).to(ILLEGAL_VOTE_INFO_ENDPOINT).end()
-					.to("bean:extractCandidateVoteService?method=extract(${body})")
-					.to("bean:verifyCandidateVoteItemService?method=lookupCandidate(${body})")
-					.to(INCREASE_VOTECOUNT_ENDPOINT);
+			from(BALLOTS_QUEUE)
+				.onException(IllegalVoteInfoException.class)
+					.to(ILLEGAL_VOTE_INFO_ENDPOINT)
+					.end()
+				.to("bean:extractCandidateVoteService?method=extract(${body})")
+				.to("bean:verifyCandidateVoteItemService?method=lookupCandidate(${body})")
+				.to(INCREASE_VOTECOUNT_ENDPOINT);
 
 			from("direct:IncreaseVotecount")
-					.to("sql:update candidate set vote_count = vote_count + 1 where name = ${body.name}?dataSource=dataSource")
-					.aggregate(new UseLatestAggregationStrategy()).inMessage().completionSize(100)
-					.completionTimeout(5000).to(SEND_BALLOT_BOX_RESULT);
+				.to("sql:update candidate set vote_count = vote_count + 1 where name = ${body.name}?dataSource=dataSource")
+				.aggregate(new UseLatestAggregationStrategy())
+					.inMessage()
+					.completionSize(100)
+					.completionTimeout(5000)
+				.to(SEND_BALLOT_BOX_RESULT);
 
 			// ballot box result to mail
-			from(SEND_BALLOT_BOX_RESULT).to("sql:select name, vote_count from candidate?dataSource=dataSource")
-					.marshal().csv()
-					.setBody(body().prepend(simple("${bean:ballotBoxIdentifierService?method=getUniqueBallotBoxId}\n")))
-					.to("stream:out").to(SEND_BALLOT_BOX_RESULT_MAIL_ROUTE);
+			from(SEND_BALLOT_BOX_RESULT)
+				.to("sql:select name, vote_count from candidate?dataSource=dataSource")
+				.marshal().csv()
+				.setBody(body().prepend(simple("${bean:ballotBoxIdentifierService?method=getUniqueBallotBoxId}\n")))
+				.to("stream:out").to(SEND_BALLOT_BOX_RESULT_MAIL_ROUTE);
 		}
 
 		private void endResultCalculationProcess() {
 
 			// mail csv to database
 			from(POP3_URI).process(new ExtractBallotMessageProcessor()).unmarshal().csv()
-					.setHeader("candidates", simple("${body.size()}")).setHeader("message", body())
+				.setHeader("candidates", simple("${body.size()}")).setHeader("message", body())
 
-					// delete old votes
-					.setBody(simple("delete from polls where ballot_box_id = :?ballot_box_id")).to(JDBC_QUERY)
-
-					.setBody(header("message"))
-
-					.split(body()).setHeader("candidate", simple("${body.get(0)}"))
-					.setHeader("vote_count", simple("${body.get(1)}")).setBody(simple(
-							"insert into polls(candidate, vote_count, ballot_box_id) values (:?candidate, :?vote_count, :?ballot_box_id);"))
-
-					.to(JDBC_QUERY).end()
-					.setBody(
-							simple("Inserted ${header.candidates} votes from ballot box ${header.ballot_box_id} via {{mail.user}}"))
-					.to("stream:out").to(ROUTES_AFTER_CANDIDATE_INSERT_ENDPOINT);
+				// delete old votes
+				.setBody(simple("delete from polls where ballot_box_id = :?ballot_box_id"))
+				.to(JDBC_QUERY)
+				.setBody(header("message"))
+				.split(body())
+					.setHeader("candidate", simple("${body.get(0)}"))
+					.setHeader("vote_count", simple("${body.get(1)}"))
+					.setBody(simple("insert into polls(candidate, vote_count, ballot_box_id) values (:?candidate, :?vote_count, :?ballot_box_id);"))
+					.to(JDBC_QUERY)
+				.end()
+				.setBody(simple("Inserted ${header.candidates} votes from ballot box ${header.ballot_box_id} via {{mail.user}}"))
+				.to("stream:out")
+				.to(ROUTES_AFTER_CANDIDATE_INSERT_ENDPOINT);
 
 			// will be invoked by a timer route
 			from(PUBLISH_CURRENT_PROJECTION_ENDPOINT).to(
-					"sql:select candidate, sum(vote_count) vote_count from polls group by candidate?dataSource=dataSource")
+				"sql:select candidate, sum(vote_count) vote_count from polls group by candidate?dataSource=dataSource")
 
-					// TODO filter message if there are no results yet
-					// .filter(body().isNotNull())
+				// TODO filter message if there are no results yet
+				// .filter(body().isNotNull())
 
-					// here we format a string be pushed to slack
-					.to("bean:slackConstructor?method=marshal(${body})")
+				// here we format a string be pushed to slack
+				.to("bean:slackConstructor?method=marshal(${body})")
 
-					// (image maybe later, don't know if apache-camel-slack lets
-					// you do that)
-					.to(SLACK_ENDPOINT);
+				// (image maybe later, don't know if apache-camel-slack lets
+				// you do that)
+				.to(SLACK_ENDPOINT);
 
 			from("direct:push_to_slack").to("slack:#general");
 		}
