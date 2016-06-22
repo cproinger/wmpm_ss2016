@@ -23,8 +23,9 @@ public class SlackConstructorImpl implements SlackConstructor {
 
 			sb.append(candidate).append(" ")
 			.append(String.format("%.2f", sumVote))
-			.append(" % ")
-			.append("\n");
+			.append(" % (")
+			.append(voteCount)
+			.append(")\n");
 		}
 		
 		//return ;
