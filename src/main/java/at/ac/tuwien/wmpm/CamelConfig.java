@@ -102,6 +102,7 @@ public class CamelConfig extends SingleRouteCamelConfiguration {
 							.end()
 					.end()
 					.to("bean:voteRequestService?method=doVote(${body})")
+					.to(REMOVE_PERSONAL_INFORMATION_ENDPOINT)
 					.bean(VoteResponseFactory.class, "createValidResponse")
 				.endDoTry()
 				.doCatch(IllegalPersonInfoException.class)
@@ -127,6 +128,7 @@ public class CamelConfig extends SingleRouteCamelConfiguration {
 			from(OPEN_BALLOT_BOX)
 				.to("bean:voteRepository?method=findAll()")
 				.split(body())
+				.setBody(simple("${body.voteInfo}"))
 				.to(BALLOTS_QUEUE);
 
 			from(BALLOTS_QUEUE)
@@ -137,10 +139,11 @@ public class CamelConfig extends SingleRouteCamelConfiguration {
 				.to("bean:verifyCandidateVoteItemService?method=lookupCandidate(${body})")
 				.to(INCREASE_VOTECOUNT_ENDPOINT);
 
-			from("direct:IncreaseVotecount")
-				.to("sql:update candidate set vote_count = vote_count + 1 where name = ${body.name}?dataSource=dataSource")
+			from("direct:increaseVotecount")
+				.setHeader("candidateName", simple("${body.name}"))
+				.to("sql:update candidate set vote_count = vote_count + 1 where name = :#candidateName?dataSource=dataSource")
 				.aggregate(new UseLatestAggregationStrategy())
-					.inMessage()
+					.body()
 					.completionSize(100)
 					.completionTimeout(5000)
 				.to(SEND_BALLOT_BOX_RESULT);
