@@ -1,8 +1,10 @@
-package at.ac.tuwien.wmpm.service;
+package at.ac.tuwien.wmpm.service.impl;
 
 import java.util.List;
 import java.util.stream.Collectors;
 
+import at.ac.tuwien.wmpm.service.ExtractCandidateVoteService;
+import at.ac.tuwien.wmpm.service.IllegalVoteException;
 import org.springframework.stereotype.Service;
 
 import at.ac.tuwien.wmpm.ss2016.VoteInfo;

@@ -1,4 +1,4 @@
-package at.ac.tuwien.wmpm.service;
+package at.ac.tuwien.wmpm.service.impl;
 
 import java.util.List;
 
@@ -6,6 +6,8 @@ import javax.persistence.EntityManager;
 import javax.persistence.PersistenceContext;
 import javax.persistence.TypedQuery;
 
+import at.ac.tuwien.wmpm.service.IllegalCandidateException;
+import at.ac.tuwien.wmpm.service.VerifyCandidateVoteItemService;
 import org.springframework.stereotype.Service;
 
 import at.ac.tuwien.wmpm.domain.Candidate;

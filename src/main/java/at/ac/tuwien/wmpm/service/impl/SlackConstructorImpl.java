@@ -1,8 +1,9 @@
-package at.ac.tuwien.wmpm.service;
+package at.ac.tuwien.wmpm.service.impl;
 
 import java.util.List;
 import java.util.Map;
 
+import at.ac.tuwien.wmpm.service.SlackConstructor;
 import org.springframework.stereotype.Service;
 
 @Service("slackConstructor")
