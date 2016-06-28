@@ -20,7 +20,7 @@ import java.util.List;
 
 @Transactional
 @Service("voteRequestService")
-public class VoteRequestService implements IVoteRequestService {
+public class VoteRequestService implements at.ac.tuwien.wmpm.service.VoteRequestService {
 
   @PersistenceContext
   private EntityManager entityManager;
