@@ -3,7 +3,7 @@ package at.ac.tuwien.wmpm.service;
 import at.ac.tuwien.wmpm.helper.TransformedRequest;
 import at.ac.tuwien.wmpm.ss2016.VoteRequest;
 
-public interface IVoteRequestService {
+public interface VoteRequestService {
 
   /**
    * Checks if the ballot is still open.
